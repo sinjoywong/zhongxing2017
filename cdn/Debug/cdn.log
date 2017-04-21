@@ -1,0 +1,15 @@
+﻿  stdafx.cpp
+  io.cpp
+d:\code_tst\zhongxing\hw\cdn\cdn\io.cpp(33): warning C4244: “初始化”: 从“time_t”转换到“unsigned long”，可能丢失数据
+d:\code_tst\zhongxing\hw\cdn\cdn\io.cpp(35): warning C4244: “初始化”: 从“time_t”转换到“unsigned long”，可能丢失数据
+d:\code_tst\zhongxing\hw\cdn\cdn\io.cpp(37): warning C4244: “=”: 从“time_t”转换到“unsigned long”，可能丢失数据
+  genetic_alogrithm.cpp
+d:\code_tst\zhongxing\hw\cdn\cdn\genetic_alogrithm.cpp(81): warning C4018: “<”: 有符号/无符号不匹配
+  floyd_algorithm.cpp
+d:\code_tst\zhongxing\hw\cdn\cdn\floyd_algorithm.cpp(526): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
+  deploy.cpp
+d:\code_tst\zhongxing\hw\cdn\cdn\deploy.cpp(266): warning C4018: “<”: 有符号/无符号不匹配
+  cdn.cpp
+  正在生成代码...
+  cdn.vcxproj -> D:\Code_tst\zhongxing\hw\cdn\Debug\cdn.exe
+  cdn.vcxproj -> D:\Code_tst\zhongxing\hw\cdn\Debug\cdn.pdb (Full PDB)
