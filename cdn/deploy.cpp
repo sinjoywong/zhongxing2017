@@ -2,7 +2,7 @@
 #include "includes.h"
 using namespace std;
 int NodeNum_Network, LinkNum, NodeNum_Blue, LinkNum_Blue, LinkNum_Red;
-int **LinkUnitPrice;
+int **LinkUnitPrice,**LinkUnitPrice_Ori;//因为是通过修改单价的邻接矩阵来寻找路径，所以需要一个原本的单价邻接矩阵来计算实际花费
 int **LinkGreen;
 int **LinkRed;
 
@@ -23,7 +23,7 @@ clock_t start, finish;
 vector<int> vec_greenNode;
 
 int Weight_Greenlink;
-
+int NodeStart, NodeEnd;
 //----main-----
 void deploy_server(char * topo[MAX_EDGE_NUM], int line_num, char * filename) {
 	//加入计时器，结尾部分在performevolution()中
@@ -33,10 +33,21 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num, char * filename) {
 	get_split_number(topo, line_num);
 	//------ Weight setting---------------
 	Weight_Greenlink = 1;
-	LinkUnitPrice[2][4] = 0;
-	LinkUnitPrice[4][2] = 0;
-	LinkUnitPrice[14][13] = 0;
-	LinkUnitPrice[13][14] = 0;
+	//--for green link
+	LinkUnitPrice[2][4] = 0.1;
+	LinkUnitPrice[4][2] = 0.1;
+	LinkUnitPrice[14][13] = 0.1;
+	LinkUnitPrice[13][14] = 0.1;
+	//--for green node
+	LinkUnitPrice[3][7] = 0.1;
+	LinkUnitPrice[7][3] = 0.1;
+	LinkUnitPrice[6][7] = 0.1;
+	LinkUnitPrice[7][6] = 0.1;
+	LinkUnitPrice[8][7] = 0.1;
+	LinkUnitPrice[7][8] = 0.1;
+	// for red link
+	LinkUnitPrice[11][12] = 999;
+	LinkUnitPrice[12][11] = 999;
 //----------Weight setting end--------------	
 	 
 	Allocate_result();
@@ -47,10 +58,8 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num, char * filename) {
 	input();
 
 	generateinitialpopulation();
-
-
 	evaluatepopulation();
-	/*
+
 	//对时间和进化数目的双重控制，若不满足两个条件的任意一种则跳出进化
 	while (time_length < 85) {
 		while (generation < maxgeneration) {
@@ -62,7 +71,7 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num, char * filename) {
 			//加入计时器
 			clock_t finish2 = clock();
 			double time_length2 = (double)(finish2 - start) / CLOCKS_PER_SEC;
-			std::cout << "generation:" << generation << " time_length2=" << time_length2 << " Cost:" << sucessFinish.successAllCost<< std::endl;
+		//	std::cout << "generation:" << generation << " time_length2=" << time_length2 << " Cost:" << sucessFinish.successAllCost<< std::endl;
 
 			generatenextpopulation();
 			evaluatepopulation();
@@ -72,7 +81,7 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num, char * filename) {
 	}
 jumpout:
 	printf("最大函数值等于：%f\n", currentbest.fitness);
-
+	/*
 	string outString;
 	char charTemp[20];
 	//sprintf(charTemp, "%d", sucessFinish.successPathNum);
@@ -107,8 +116,8 @@ jumpout:
 	const char *topo_file;
 	topo_file = outString.c_str();
 	write_result(topo_file, filename);
-	Deallocate_Arrays();
 	*/
+	Deallocate_Arrays();
 }
 
 //----------------main end------------------------
@@ -150,6 +159,9 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 	NodeNum_Blue = data[2];
 	LinkNum_Blue = data[3];
 	LinkNum_Red = data[4];
+// 起点及终点的节点编号
+	NodeStart = 0;
+	NodeEnd = NodeNum_Network - 1;
 	//Get link information
 	//前2行格式固定,链路信息从第3行开始数
 	//第二获得从第3行开始到拓扑链路信息结束
@@ -169,18 +181,23 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 		}
 	}
 	LinkUnitPrice = new int *[NodeNum_Network];
+	LinkUnitPrice_Ori = new int *[NodeNum_Network];
 	for (int i = 0; i < NodeNum_Network; i++) {
 		LinkUnitPrice[i] = new int[NodeNum_Network];
+		LinkUnitPrice_Ori[i] = new int[NodeNum_Network];
 		memset(LinkUnitPrice[i], 0, NodeNum_Network * sizeof(int));
+		memset(LinkUnitPrice_Ori[i], 0, NodeNum_Network * sizeof(int));
 	}
 	//初始化这两个矩阵 使得不直接连通的线路单价为100000 如果i=j则处理方式为之后更换路线做准备
 	for (int i = 0; i < NodeNum_Network; i++) {
 		for (int j = 0; j < NodeNum_Network; j++) {
 			LinkUnitPrice[i][j] = 1000;
+			LinkUnitPrice_Ori[i][j] = 1000;
 		}
 	}
 	for (int i = 0; i != vec_link.size() / 3; i++) {
 		LinkUnitPrice[vec_link[3 * i]][vec_link[3 * i + 1]] = vec_link[3 * i + 2];
+		LinkUnitPrice_Ori[vec_link[3 * i]][vec_link[3 * i + 1]] = vec_link[3 * i + 2];
 	}
 /*
 	for (int i = 0; i != vec_link.size() / 3; i++) {
@@ -247,7 +264,6 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 	}
 	//remember to De-allocate arrays
 }
-
 
 void Deallocate_Arrays() {
 	for (int i = 0; i < NodeNum_Network; i++) {

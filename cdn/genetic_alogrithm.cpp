@@ -12,6 +12,7 @@ extern double time_length;
 extern clock_t start, finish;
 clock_t finish3;
 extern Path **allPath;
+extern int NodeStart, NodeEnd;
 void input() {//数据输入
 	printf("初始化全局变量:\n");
 	//种群大小includes.h
@@ -25,26 +26,26 @@ void input() {//数据输入
 void generateinitialpopulation() { //种群初始化
 	for (int i = 0; i < POPSIZE; i++) {
 		//srand((unsigned)time(NULL));
-		int k = rand() % (17 - 1 - 0) + 1;
-		cout << "k=" << k << endl;
-		for (int m = 0; m < allPath[0][k].pathLenght; m++) {
-			population[i].chrom.push_back(allPath[0][k].path[m]);
+		int k = rand() % (NodeEnd - NodeStart - 1) + 1;
+		cout << "---k=" << k << endl;
+		for (int m = 0; m < allPath[NodeStart][k].pathLenght; m++) {
+			population[i].chrom.push_back(allPath[NodeStart][k].path[m]);
 		}
 		//此处n从1开始，否则写入的染色体会将中间值k重复两遍
-		for (int n = 1; n < allPath[k][17].pathLenght; n++) {
-			population[i].chrom.push_back(allPath[k][17].path[n]);
+		for (int n = 1; n < allPath[k][NodeEnd].pathLenght; n++) {
+			population[i].chrom.push_back(allPath[k][NodeEnd].path[n]);
 		}
+
 		//---------for debug---
 		for (unsigned int ii = 0; ii != population[i].chrom.size(); ii++) {
 			cout << population[i].chrom[ii] << endl;
 		}
 		//--------debug end----
 	}
-
 }
 void generatenextpopulation() { //生成下一代
 	selectoperator();
-	crossoveroperator();
+	//crossoveroperator();
 	mutationoperator();
 }
 void evaluatepopulation() {  //评价个体，求最佳个体
@@ -55,7 +56,8 @@ void evaluatepopulation() {  //评价个体，求最佳个体
 	cout << "population[" << i << "] cost:" << population[i].value << " fitness:" << population[i].fitness << endl;
 	}
 }
-void calculateobjectvalue() { //计算函数值
+//todo:【还没有加入对路径点的约束】
+void calculateobjectvalue() { //计算函数值,
 	for (int i = 0; i<POPSIZE; i++) {
 		for (unsigned int j = 0; j != population[i].chrom.size() - 1; j++) {
 		population[i].value +=  allPath[population[i].chrom[j]][population[i].chrom[j+1]].pathCost ;
@@ -125,8 +127,7 @@ void selectoperator() {//比例选择算法
 	double cfitness[POPSIZE];
 
 	struct individual newpopulation[POPSIZE];
-	for (i = 0; i<POPSIZE; i++)
-	{
+	for (i = 0; i<POPSIZE; i++) {
 		sum += population[i].fitness;
 	}
 
@@ -151,7 +152,6 @@ void selectoperator() {//比例选择算法
 	}
 }
 void crossoveroperator() {//交叉算法
-
 	int i, j;
 	int index[POPSIZE];
 	int point, temp;
@@ -184,7 +184,25 @@ void mutationoperator() {//变异操作
 		for (int j = 0; j<chromlength; j++) {
 			p = rand() % 1000 / 1000.0;
 			if (p<pm) {
-				population[i].chrom[j] = (population[i].chrom[j] == 0) ? 1 : 0;
+				//srand((unsigned)time(NULL));
+				int ks = rand() % (population[i].chrom.size() - 0 - 3)+1;//(0,chrom.size()-3] ,此处是下标，并非节点编号本身
+				int kt = rand() % (population[i].chrom.size() - 0 - 3) + 3;//(0,chrom.size()-1]
+				int k = rand() % (NodeEnd - NodeStart - 1) + 1;//(NodeStart,NodeEnd)
+				cout << "---k=" << k << endl;
+				population[i].chrom.erase(population[i].chrom.begin() + ks, population[i].chrom.begin() + kt);//删除ks与kt之间的元素
+				for (int m = 0; m < allPath[population[i].chrom[ks]][k].pathLenght; m++) {
+					population[i].chrom.insert(population[i].chrom.begin()+kt,allPath[population[i].chrom[ks]][k].path[m]);// 将新的ks-k的路径写在kt前面
+				}
+				//此处n从1开始，否则写入的染色体会将中间值k重复两遍
+				for (int n = 1; n < allPath[k][population[i].chrom[kt]].pathLenght; n++) {
+					population[i].chrom.insert(population[i].chrom.begin()+kt,allPath[k][population[i].chrom[kt]].path[n]);//将新的k-kt的路径写在kt前面
+				}
+				//---------for debug---
+				for (unsigned int ii = 0; ii != population[i].chrom.size(); ii++) {
+					cout << "mutation:"<<population[i].chrom[ii] << endl;
+				}
+				//--------debug end----
+			//	population[i].chrom[j] = (population[i].chrom[j] == 0) ? 1 : 0;
 			}
 		}
 	}
