@@ -59,7 +59,10 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num, char * filename) {
 
 	generateinitialpopulation();
 	evaluatepopulation();
-
+//--for debug 
+			generatenextpopulation();
+			//--debug end
+			/*
 	//对时间和进化数目的双重控制，若不满足两个条件的任意一种则跳出进化
 	while (time_length < 85) {
 		while (generation < maxgeneration) {
@@ -73,10 +76,10 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num, char * filename) {
 			double time_length2 = (double)(finish2 - start) / CLOCKS_PER_SEC;
 		//	std::cout << "generation:" << generation << " time_length2=" << time_length2 << " Cost:" << sucessFinish.successAllCost<< std::endl;
 
-			generatenextpopulation();
-			evaluatepopulation();
-			performevolution();
-			outputtextreport();  //for debug
+		//	generatenextpopulation();
+		//	evaluatepopulation();
+		//	performevolution();
+		//	outputtextreport();  //for debug
 		}
 	}
 jumpout:
