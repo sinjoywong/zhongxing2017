@@ -279,9 +279,7 @@ void crossoveroperator() {//交叉算法
 void mutationoperator() {//变异操作
 	double p;
 	int tmp;
-	bool swapped ;
 	for (int i = 0; i<POPSIZE; i++) {
-	
 				srand((unsigned)time(NULL));
 		//	p = rand() % 1000 / 1000.0;
 			p = 0.1 ;
@@ -294,9 +292,9 @@ void mutationoperator() {//变异操作
 			//	ks = 1;
 			//	k = 1;
 			//	kt = 2;
-				cout << "POP" << i << " chrom ks[" << ks << "]=" << population[i].chrom[ks]<<" " << "k=" << k << " " << " chrom kt[" << kt << "]=" << population[i].chrom[kt] << endl;
+				cout << "POP" << i << " chrom ks[" << ks << "]=" << population[i].chrom[ks] << " " << "k=" << k << " " << " chrom kt[" << kt << "]=" << population[i].chrom[kt] << endl;
 
-				population[i].chrom.erase(population[i].chrom.begin() + ks+1, population[i].chrom.begin() + kt);//删除ks与kt之间的元素,保留ks，kt
+				population[i].chrom.erase(population[i].chrom.begin() + ks + 1, population[i].chrom.begin() + kt);//删除ks与kt之间的元素,保留ks，kt
 				cout << "after erase:";
 				for (unsigned int i = 0; i < population[0].chrom.size(); i++) {
 					cout << population[0].chrom[i] << " ";
@@ -316,25 +314,27 @@ void mutationoperator() {//变异操作
 				//---debug end	
 
 				for (int n = 1; n < Length_k_kt; n++) {
-					population[i].chrom.insert(population[i].chrom.begin() + kt, 
-						allPath[k][population[i].chrom[kt]].path[Length_k_kt - n-1]);//将新的k-kt的路径写在kt前面
+					population[i].chrom.insert(population[i].chrom.begin() + kt,
+						allPath[k][population[i].chrom[kt]].path[Length_k_kt - n - 1]);//将新的k-kt的路径写在kt前面
 				}
 
 				int Length_ks_k = allPath[population[i].chrom[ks]][k].pathLenght;
 
 				//---------for debug---
 				cout << "ks-k:";
-				for (int m = 0; m < Length_ks_k ; m++) {//Length_ks_k-1是因为避免与原来基因位（erase左开右闭未删除）重复
+				for (int m = 0; m < Length_ks_k; m++) {//Length_ks_k-1是因为避免与原来基因位（erase左开右闭未删除）重复
 					cout << allPath[population[i].chrom[ks]][k].path[m] << " ";
 				}
 				cout << endl;
 				//---debug end---
 
-				for (int m =1 ; m < Length_ks_k -1; m++) {//Length_ks_k-1是因为避免与原来基因位（erase左开右闭未删除）重复
-					population[i].chrom.insert(population[i].chrom.begin()+kt,
-						allPath[population[i].chrom[ks]][k].path[Length_ks_k -m-1]);// 将新的ks-k的路径写在kt前面
+				for (int m = 1; m < Length_ks_k - 1; m++) {//Length_ks_k-1是因为避免与原来基因位（erase左开右闭未删除）重复
+					population[i].chrom.insert(population[i].chrom.begin() + kt,
+						allPath[population[i].chrom[ks]][k].path[Length_ks_k - m - 1]);// 将新的ks-k的路径写在kt前面
 				}
 				
+
+
 				//---for debug---
 				cout << "AfterMutation:";
 				for (unsigned int ii = 0; ii != population[i].chrom.size(); ii++) {
@@ -342,11 +342,21 @@ void mutationoperator() {//变异操作
 				}
 				cout << endl;
 				//--------debug end----
-			
+
+				//Delete all closed cycles
+				deleteCloseCycles();
+
+				//---for debug---
+				cout << "AfterMutationAndDeleteCycles:";
+				for (unsigned int ii = 0; ii != population[i].chrom.size(); ii++) {
+					cout << population[i].chrom[ii] << " ";
+				}
+				cout << endl;
+				//--------debug end----
+
 			}
 		}
 	}
-
 void outputtextreport() {//数据输出
 	double sum;
 	double average;
@@ -356,4 +366,21 @@ void outputtextreport() {//数据输出
 	}
 	average = sum / POPSIZE;
 	//printf("当前世代=%d\n当前世代平均函数值=%f\n当前世代最高函数值=%f\n", generation, average, population[best_index].value);
+}
+
+void deleteCloseCycles() {//去除环，形参为第i条染色体
+	for (int i = 0; i < POPSIZE; i++) {
+		int dupIndex_end;
+		for (unsigned int ii = 0; ii < population[i].chrom.size(); ii++) {
+			dupIndex_end = ii + 1;
+			for (unsigned int j = ii + 1; j < population[i].chrom.size(); j++) {
+				if (population[i].chrom[ii] == population[i].chrom[j]) {
+					dupIndex_end = j;
+				}
+			}
+			if (dupIndex_end > (ii + 1)) {
+				population[i].chrom.erase(population[i].chrom.begin() + i + 1, population[i].chrom.begin() + dupIndex_end + 1);
+			}
+		}
+	}
 }

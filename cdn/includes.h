@@ -56,4 +56,5 @@ void crossoveroperator();
 void mutationoperator();
 void input();
 void outputtextreport();
+void deleteCloseCycles();
 #endif //SDK_GCC_COPY_INCLUDES_H

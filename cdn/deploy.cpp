@@ -121,6 +121,7 @@ jumpout:
 	write_result(topo_file, filename);
 	*/
 	Deallocate_Arrays();
+	system("pause");
 }
 
 //----------------main end------------------------
