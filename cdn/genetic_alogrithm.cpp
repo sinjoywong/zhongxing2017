@@ -334,7 +334,6 @@ void mutationoperator() {//变异操作
 				}
 				
 
-
 				//---for debug---
 				cout << "AfterMutation:";
 				for (unsigned int ii = 0; ii != population[i].chrom.size(); ii++) {
@@ -379,7 +378,7 @@ void deleteCloseCycles() {//去除环，形参为第i条染色体
 				}
 			}
 			if (dupIndex_end > (ii + 1)) {
-				population[i].chrom.erase(population[i].chrom.begin() + i + 1, population[i].chrom.begin() + dupIndex_end + 1);
+				population[i].chrom.erase(population[i].chrom.begin() + ii + 1, population[i].chrom.begin() + dupIndex_end + 1);
 			}
 		}
 	}
