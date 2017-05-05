@@ -13,21 +13,20 @@ extern clock_t start, finish;
 clock_t finish3;
 extern Path **allPath;
 extern int NodeStart, NodeEnd;
+extern int **LinkUnitPriceReal;//为加权自由，令LinkUnitPrice is double, let LinkUnitPriceReal is int
+
 void input() {//数据输入
 	printf("初始化全局变量:\n");
-	//种群大小includes.h
 	//最大世代数(100-300)
 	maxgeneration = 20;
 	//交叉率(0.2-0.99)
-	pc = 0.99;
+	pc = 0.3;
 	//变异率(0.001-0.1)
-	pm = 1;
+	pm = 0.01;
 }
 void generateinitialpopulation() { //种群初始化
-	/*
-		srand((unsigned)time(NULL));
+	srand((unsigned)time(NULL));
 	for (int i = 0; i < POPSIZE; i++) {
-		//srand((unsigned)time(NULL));
 		int k = rand() % (NodeEnd - NodeStart - 1) + 1;
 		for (int m = 0; m < allPath[NodeStart][k].pathLenght; m++) {
 			population[i].chrom.push_back(allPath[NodeStart][k].path[m]);
@@ -37,14 +36,8 @@ void generateinitialpopulation() { //种群初始化
 			population[i].chrom.push_back(allPath[k][NodeEnd].path[n]);
 		}
 		//去除环
-		vector<int>::iterator iter = population[i].chrom.begin();
-		while (iter != population[i].chrom.end()) {
-			if (iter != find(population[i].chrom.begin(), iter, *iter)) {
-
-			}
-			iter++;
-		}
-		*/
+		deleteCloseCycles();
+	/*
 		population[0].chrom.push_back(0);
 		population[0].chrom.push_back(2);
 		population[0].chrom.push_back(3);
@@ -53,19 +46,15 @@ void generateinitialpopulation() { //种群初始化
 		population[0].chrom.push_back(14);
 		population[0].chrom.push_back(13);
 		population[0].chrom.push_back(17);
-
-		//---------for debug---
-//		cout << "{OriginalPopulation[" << i << "]:" << "k=" << k << "} ";
-		for (unsigned int ii = 0; ii != population[0].chrom.size(); ii++) {
-			std::cout << population[0].chrom[ii] << " ";
-		}
-		std::cout << endl;
-		//--------debug end----
-//	}
+*/
+	}
+	//---------for debug---
+	displayChroms("Initialize");
+	//--------debug end----
 }
 void generatenextpopulation() { //生成下一代
-	//selectoperator();
-	//crossoveroperator();
+	selectoperator();
+	crossoveroperator();
 	mutationoperator();
 }
 void evaluatepopulation() {  //评价个体，求最佳个体
@@ -73,14 +62,16 @@ void evaluatepopulation() {  //评价个体，求最佳个体
 	calculatefitnessvalue();
 	findbestandworstindividual();
 	for (int i = 0; i < POPSIZE; i++) {
-	//cout << "population[" << i << "] cost:" << population[i].value << " fitness:" << population[i].fitness << endl;
+	cout << "population[" << i << "] cost:" << population[i].value << " fitness:" << population[i].fitness << endl;
 	}
 }
 //todo:【还没有加入对路径点的约束】
 void calculateobjectvalue() { //计算函数值,
 	for (int i = 0; i<POPSIZE; i++) {
+		//double tmp = 0;
+		population[i].value = 0;
 		for (unsigned int j = 0; j != population[i].chrom.size() - 1; j++) {
-		population[i].value +=  allPath[population[i].chrom[j]][population[i].chrom[j+1]].pathCost ;
+		population[i].value += allPath[population[i].chrom[j]][population[i].chrom[j+1]].pathCost ;
 		}
 	}
 }
@@ -101,8 +92,8 @@ void calculatefitnessvalue() {//计算适应度
 			}
 			else { temp = 0.0; }
 		}
-		population[i].fitness = temp;
-		//population[i].fitness = population[i].value;
+		//population[i].fitness = temp;
+		population[i].fitness = population[i].value;
 	}
 }
 void findbestandworstindividual() { //求最佳个体和最差个体
@@ -176,7 +167,6 @@ void crossoveroperator() {//交叉算法
 	int index[POPSIZE];
 	int point, temp;
 	double p;
-	char ch;
 	for (i = 0; i<POPSIZE; i++) {
 		index[i] = i;
 	}
@@ -189,16 +179,13 @@ void crossoveroperator() {//交叉算法
 
 	for (i = 0; i<POPSIZE - 1; i += 2) {
 		p = rand() % 1000 / 1000.0;
-		if (p<pc)
-		{
+		//p = 0.01;//for debug
+		if (p<pc) {
 			point = rand() % (chromlength - 1) + 1;
 			vector<int> repeatNode;
-			for (unsigned int j = 0; j<population[index[i]].chrom.size(); j++)
-			{
-				for (unsigned int k = 0; k<population[index[i + 1]].chrom.size(); k++)
-				{
-					if (population[index[i]].chrom[j] == population[index[i + 1]].chrom[k])
-					{
+			for (unsigned int j = 0; j<population[index[i]].chrom.size(); j++) {
+				for (unsigned int k = 0; k<population[index[i + 1]].chrom.size(); k++) {
+					if (population[index[i]].chrom[j] == population[index[i + 1]].chrom[k]) {
 						repeatNode.push_back(population[index[i]].chrom[j]);
 						break;
 					}
@@ -213,30 +200,25 @@ void crossoveroperator() {//交叉算法
 				vector<int> chromTemp1;                //临时储存染色体
 				vector<int> chromTemp2;                //临时储存染色体
 				firstNode = repeatNode[rand() % repeatNode.size()];
-				do
-				{
+				do {
 					secondNode = repeatNode[rand() % repeatNode.size()];
 				} while (secondNode == firstNode);
 
-				for (unsigned int j = 0; j<population[index[i]].chrom.size(); j++)
-				{
+				for (unsigned int j = 0; j<population[index[i]].chrom.size(); j++) {
 					if (population[index[i]].chrom[j] == firstNode) { crossoverPosition[0] = j; }
 					if (population[index[i]].chrom[j] == secondNode) { crossoverPosition[1] = j; }
 				}
 
-				for (unsigned int j = 0; j<population[index[i + 1]].chrom.size(); j++)
-				{
+				for (unsigned int j = 0; j<population[index[i + 1]].chrom.size(); j++) {
 					if (population[index[i + 1]].chrom[j] == firstNode) { crossoverPosition[2] = j; }
 					if (population[index[i + 1]].chrom[j] == secondNode) { crossoverPosition[3] = j; }
 				}
-				if (crossoverPosition[1]<crossoverPosition[0])
-				{
+				if (crossoverPosition[1]<crossoverPosition[0]) {
 					PositionTemp = crossoverPosition[0];
 					crossoverPosition[0] = crossoverPosition[1];
 					crossoverPosition[1] = PositionTemp;
 				}
-				if (crossoverPosition[3]<crossoverPosition[2])
-				{
+				if (crossoverPosition[3]<crossoverPosition[2]) {
 					PositionTemp = crossoverPosition[2];
 					crossoverPosition[2] = crossoverPosition[3];
 					crossoverPosition[3] = PositionTemp;
@@ -245,114 +227,84 @@ void crossoveroperator() {//交叉算法
 				population[index[i]].chrom.clear();
 
 				//生成第一条
-				for (int j = 0; j<crossoverPosition[0]; j++)
-				{
+				for (int j = 0; j<crossoverPosition[0]; j++) {
 					population[index[i]].chrom.push_back(chromTemp1[j]);
 				}
-				for (int k = crossoverPosition[2]; k <= crossoverPosition[3]; k++)
-				{
+				for (int k = crossoverPosition[2]; k <= crossoverPosition[3]; k++) {
 					population[index[i]].chrom.push_back(population[index[i + 1]].chrom[k]);
 				}
-				for (unsigned int k = crossoverPosition[1] + 1; k<chromTemp1.size(); k++)
-				{
+				for (unsigned int k = crossoverPosition[1] + 1; k<chromTemp1.size(); k++) {
 					population[index[i]].chrom.push_back(chromTemp1[k]);
 				}
 				//生成第二条
 				chromTemp2 = population[index[i + 1]].chrom;
 				population[index[i + 1]].chrom.clear();
-				for (int j = 0; j<crossoverPosition[2]; j++)
-				{
+				for (int j = 0; j<crossoverPosition[2]; j++) {
 					population[index[i + 1]].chrom.push_back(chromTemp2[j]);
 				}
-				for (int k = crossoverPosition[0]; k <= crossoverPosition[1]; k++)
-				{
+				for (int k = crossoverPosition[0]; k <= crossoverPosition[1]; k++) {
 					population[index[i + 1]].chrom.push_back(chromTemp1[k]);
 				}
-				for (unsigned int k = crossoverPosition[3] + 1; k<chromTemp2.size(); k++)
-				{
+				for (unsigned int k = crossoverPosition[3] + 1; k<chromTemp2.size(); k++) {
 					population[index[i + 1]].chrom.push_back(chromTemp2[k]);
 				}
 			}
 		}
 	}
+	//for debug
+//	displayChroms("after cross");
 }
 void mutationoperator() {//变异操作
 	double p;
-	int tmp;
 	for (int i = 0; i<POPSIZE; i++) {
-				srand((unsigned)time(NULL));
-		//	p = rand() % 1000 / 1000.0;
-			p = 0.1 ;
+		srand((unsigned)time(NULL));
+			p = rand() % 1000 / 1000.0;
 			if (p < pm) {
 				//	srand((unsigned)time(NULL));
 				int ks = rand() % (population[i].chrom.size() - 0 - 3) + 1;//(0,chrom.size()-3] ,此处是下标，并非节点编号本身
 				int kt = ks + 2;
 				int k = rand() % (NodeEnd - NodeStart - 1) + 1;//(NodeStart,NodeEnd)
-				//-for debug
-			//	ks = 1;
-			//	k = 1;
-			//	kt = 2;
-				cout << "POP" << i << " chrom ks[" << ks << "]=" << population[i].chrom[ks] << " " << "k=" << k << " " << " chrom kt[" << kt << "]=" << population[i].chrom[kt] << endl;
 
 				population[i].chrom.erase(population[i].chrom.begin() + ks + 1, population[i].chrom.begin() + kt);//删除ks与kt之间的元素,保留ks，kt
-				cout << "after erase:";
-				for (unsigned int i = 0; i < population[0].chrom.size(); i++) {
-					cout << population[0].chrom[i] << " ";
-				}
-				cout << endl;
+
+				// --for debug
+				//displayChroms("--after erase");
 
 				//此处n从1开始，否则写入的染色体会将中间值k重复两遍
 				kt = kt - 1;//erase后索引发生了变化，从ks开始减了1个;
 				int Length_k_kt = allPath[k][population[i].chrom[kt]].pathLenght;
 
 				//--for debug 
+				/*
 				cout << "k-kt:";
 				for (int n = 0; n < Length_k_kt; n++) {
 					cout << allPath[k][population[i].chrom[kt]].path[n] << " ";
 				}
 				cout << endl;
+				*/
 				//---debug end	
-
 				for (int n = 1; n < Length_k_kt; n++) {
 					population[i].chrom.insert(population[i].chrom.begin() + kt,
 						allPath[k][population[i].chrom[kt]].path[Length_k_kt - n - 1]);//将新的k-kt的路径写在kt前面
 				}
-
 				int Length_ks_k = allPath[population[i].chrom[ks]][k].pathLenght;
-
 				//---------for debug---
+				/*
 				cout << "ks-k:";
 				for (int m = 0; m < Length_ks_k; m++) {//Length_ks_k-1是因为避免与原来基因位（erase左开右闭未删除）重复
 					cout << allPath[population[i].chrom[ks]][k].path[m] << " ";
 				}
 				cout << endl;
+				*/
 				//---debug end---
-
 				for (int m = 1; m < Length_ks_k - 1; m++) {//Length_ks_k-1是因为避免与原来基因位（erase左开右闭未删除）重复
 					population[i].chrom.insert(population[i].chrom.begin() + kt,
 						allPath[population[i].chrom[ks]][k].path[Length_ks_k - m - 1]);// 将新的ks-k的路径写在kt前面
 				}
+			//	displayChroms("after mutation");//for debug
 				
-
-				//---for debug---
-				cout << "AfterMutation:";
-				for (unsigned int ii = 0; ii != population[i].chrom.size(); ii++) {
-					 cout << population[i].chrom[ii] << " ";
-				}
-				cout << endl;
-				//--------debug end----
-
-				//Delete all closed cycles
-				deleteCloseCycles();
-
-				//---for debug---
-				cout << "AfterMutationAndDeleteCycles:";
-				for (unsigned int ii = 0; ii != population[i].chrom.size(); ii++) {
-					cout << population[i].chrom[ii] << " ";
-				}
-				cout << endl;
-				//--------debug end----
-
+				deleteCloseCycles();//Delete all closed cycles
+		//	displayChroms("AfterMutationAndDeleteCycles:");//---for debug---
 			}
 		}
 	}
@@ -364,9 +316,13 @@ void outputtextreport() {//数据输出
 		sum += population[i].value;
 	}
 	average = sum / POPSIZE;
-	//printf("当前世代=%d\n当前世代平均函数值=%f\n当前世代最高函数值=%f\n", generation, average, population[best_index].value);
+	printf("当前世代=%d\n当前世代平均函数值=%f\n当前世代最高函数值=%f\n", generation, average, population[best_index].value);
+	cout << "chrom:";
+	for (unsigned int i = 0; i < population[best_index].chrom.size(); i++) {
+		cout << population[best_index].chrom[i] << "->";
+	}
+	cout << endl;
 }
-
 void deleteCloseCycles() {//去除环，形参为第i条染色体
 	for (int i = 0; i < POPSIZE; i++) {
 		int dupIndex_end;
@@ -382,4 +338,26 @@ void deleteCloseCycles() {//去除环，形参为第i条染色体
 			}
 		}
 	}
+}
+
+//debug function
+void displayChroms(std::string debugName) {
+	cout << "--For debug:" << debugName << endl;
+	for (int i = 0; i < POPSIZE; i++) {
+		for (unsigned int ii = 0; ii <population[i].chrom.size(); ii++) {
+			cout << population[i].chrom[ii] << " ";
+		}
+		cout << endl;
+	}
+}
+
+double getRealCost(int**LinkUnitPriceReal, individual currentbest) {
+	double costTmp=0;
+	for (unsigned int i = 0; i < currentbest.chrom.size()-1; i++) {
+	//	for (unsigned int j = i + 1; j < currentbest.chrom.size(); j++) {
+		//int j = i + 1;
+			costTmp += LinkUnitPriceReal[currentbest.chrom[i]][currentbest.chrom[i+1]];
+	//	}
+	}
+	return costTmp;
 }

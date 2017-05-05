@@ -1,8 +1,7 @@
 #include "includes.h"
 using namespace std;
 
-extern int **LinkUnitPrice;
-extern int **LinkMax;
+extern double **LinkUnitPrice;
 extern Path **allPath;
 extern int NodeNum_Network, LinkNum;
 extern struct individual population[POPSIZE];
@@ -10,7 +9,7 @@ Path **allPathTemp;
 
 int pathLenght = 0;
 
-void Floyd(int &NodeNum_Network, int &LinkNum) {
+void Floyd(double **LinkUnitPrice,int &NodeNum_Network, int &LinkNum) {
 	int ** iArrPath;
 		iArrPath = new int*[MAX_VALUE];
 		for (int i = 0; i < MAX_VALUE; i++) {
@@ -106,6 +105,7 @@ void PrintResult(const MGraph& mGraph, int **iArrPath) {
 		}
 	}
 	//--for debugging 
+	/*
 	cout << "0 to 17 " << endl;
 	//for (int i = 0; i <allPath[0][17].pathLenght; i++) {
 	for (int i = 0; i <allPath[0][0].pathLenght; i++) {
@@ -113,6 +113,7 @@ void PrintResult(const MGraph& mGraph, int **iArrPath) {
 		cout << allPath[0][0].path[i]<< endl;
 	}
 		cout << "pathCost=" << allPath[0][17].pathCost<<endl;
+		*/
 	//--end debug
 }
 

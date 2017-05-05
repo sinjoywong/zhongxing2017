@@ -2,9 +2,10 @@
 #include "includes.h"
 using namespace std;
 int NodeNum_Network, LinkNum, NodeNum_Blue, LinkNum_Blue, LinkNum_Red;
-int **LinkUnitPrice,**LinkUnitPrice_Ori;//因为是通过修改单价的邻接矩阵来寻找路径，所以需要一个原本的单价邻接矩阵来计算实际花费
-int **LinkGreen;
-int **LinkRed;
+double **LinkUnitPrice;
+int **LinkUnitPriceReal;//因为是通过修改单价的邻接矩阵来寻找路径，所以需要一个原本的单价邻接矩阵来计算实际花费
+double **LinkGreen;
+double  **LinkRed;
 
 Path **allPath;
 extern int generation;      //世代数
@@ -22,8 +23,10 @@ clock_t start, finish;
 
 vector<int> vec_greenNode;
 
-int Weight_Greenlink;
+double  Weight_Greenlink;
 int NodeStart, NodeEnd;
+
+double realCost;
 //----main-----
 void deploy_server(char * topo[MAX_EDGE_NUM], int line_num, char * filename) {
 	//加入计时器，结尾部分在performevolution()中
@@ -52,17 +55,14 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num, char * filename) {
 	 
 	Allocate_result();
 
-	Floyd(NodeNum_Network, LinkNum);
+	Floyd(LinkUnitPrice,NodeNum_Network, LinkNum);
 
 	generation = 0;
 	input();
 
 	generateinitialpopulation();
 	evaluatepopulation();
-//--for debug 
-			generatenextpopulation();
-			//--debug end
-			/*
+
 	//对时间和进化数目的双重控制，若不满足两个条件的任意一种则跳出进化
 	while (time_length < 85) {
 		while (generation < maxgeneration) {
@@ -76,14 +76,19 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num, char * filename) {
 			double time_length2 = (double)(finish2 - start) / CLOCKS_PER_SEC;
 		//	std::cout << "generation:" << generation << " time_length2=" << time_length2 << " Cost:" << sucessFinish.successAllCost<< std::endl;
 
-		//	generatenextpopulation();
-		//	evaluatepopulation();
-		//	performevolution();
-		//	outputtextreport();  //for debug
+			generatenextpopulation();
+			evaluatepopulation();
+			performevolution();
+			outputtextreport();  //for debug
 		}
 	}
 jumpout:
 	printf("最大函数值等于：%f\n", currentbest.fitness);
+	//计算真实花费
+	realCost = getRealCost(LinkUnitPriceReal, currentbest);
+	cout << "real Cost:" << realCost << endl;
+
+
 	/*
 	string outString;
 	char charTemp[20];
@@ -184,34 +189,30 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 			}
 		}
 	}
-	LinkUnitPrice = new int *[NodeNum_Network];
-	LinkUnitPrice_Ori = new int *[NodeNum_Network];
+	LinkUnitPrice = new double *[NodeNum_Network];
+	LinkUnitPriceReal = new int  *[NodeNum_Network];
 	for (int i = 0; i < NodeNum_Network; i++) {
-		LinkUnitPrice[i] = new int[NodeNum_Network];
-		LinkUnitPrice_Ori[i] = new int[NodeNum_Network];
+		LinkUnitPrice[i] = new double[NodeNum_Network];
+		LinkUnitPriceReal[i] = new int[NodeNum_Network];
 		memset(LinkUnitPrice[i], 0, NodeNum_Network * sizeof(int));
-		memset(LinkUnitPrice_Ori[i], 0, NodeNum_Network * sizeof(int));
+		memset(LinkUnitPriceReal[i], 0, NodeNum_Network * sizeof(int));
 	}
 	//初始化这两个矩阵 使得不直接连通的线路单价为100000 如果i=j则处理方式为之后更换路线做准备
 	for (int i = 0; i < NodeNum_Network; i++) {
 		for (int j = 0; j < NodeNum_Network; j++) {
 			LinkUnitPrice[i][j] = 1000;
-			LinkUnitPrice_Ori[i][j] = 1000;
+			LinkUnitPriceReal[i][j] = 1000;
 		}
 	}
 	for (int i = 0; i != vec_link.size() / 3; i++) {
 		LinkUnitPrice[vec_link[3 * i]][vec_link[3 * i + 1]] = vec_link[3 * i + 2];
-		LinkUnitPrice_Ori[vec_link[3 * i]][vec_link[3 * i + 1]] = vec_link[3 * i + 2];
+		LinkUnitPriceReal[vec_link[3 * i]][vec_link[3 * i + 1]] = vec_link[3 * i + 2];
 	}
-/*
-	for (int i = 0; i != vec_link.size() / 3; i++) {
-		cout << vec_link[3 * i] << ' ' << vec_link[3 * i + 1]<< ' ' << LinkUnitPrice[vec_link[3 * i]][vec_link[3 * i + 1]] << endl;
-	}
-*/
+
 	for (int i = 0; i < NodeNum_Network; i++) {
 		for (int j = i; j < NodeNum_Network; j++) {
 			LinkUnitPrice[j][i] = LinkUnitPrice[i][j];
-		//	cout << LinkUnitPrice[i][j] << endl;
+			LinkUnitPriceReal[j][i] = LinkUnitPriceReal[i][j];
 		}
 	}
 	//第三，Get green node information
@@ -243,9 +244,9 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 		}
 	}
 
-	LinkGreen = new int *[NodeNum_Network];
+	LinkGreen = new double *[NodeNum_Network];
 	for (int i = 0; i < NodeNum_Network; i++) {
-		LinkGreen[i] = new int[NodeNum_Network];
+		LinkGreen[i] = new double[NodeNum_Network];
 		memset(LinkGreen[i], 0, NodeNum_Network * sizeof(int));
 	}
 	for (int i = 0; i != vec_greenlink.size() / 2; i++) {

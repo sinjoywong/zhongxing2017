@@ -9,7 +9,7 @@
 #include "time.h"
 #include "stdafx.h"
 #define MAX_VALUE 1000
-#define POPSIZE 1//population number
+#define POPSIZE 10//population number
 #define maximization 1
 #define minimization 2
 #define cmax 100
@@ -22,13 +22,15 @@ struct MGraph {
 struct Path {
 	int path[100];  //链路
 	bool cross;       //是否连通
-	int pathCost;    //链路单价
+	//int pathCost;    //链路单价
+	double  pathCost;    //链路单价
 	int pathLenght;   //链路节点数
 };
 struct success {
 	Path successPath[1000]; //暂定一百吧，之后可以改
 	int successPathNum;
-	int successAllCost;
+	//int successAllCost;
+	double  successAllCost;
 	int time;             //用来记录时间，发现时间不够就输出
 };
 struct individual {
@@ -40,7 +42,7 @@ struct individual {
 
 //-----Floyd
 void PrintResult(const MGraph& mGraph, int **iArrPath);
-void Floyd(int &NodeNum_Network, int &LinkNum);
+void Floyd(double **LinkUnitPrice,int &NodeNum_Network, int &LinkNum);
 void Deallocate_Arrays();
 void Allocate_result();
 void Deallocate_result();
@@ -57,4 +59,8 @@ void mutationoperator();
 void input();
 void outputtextreport();
 void deleteCloseCycles();
+
+
+void displayChroms(std::string debugName);
+double getRealCost(int **LinkUnitPriceReal, individual currentbest);
 #endif //SDK_GCC_COPY_INCLUDES_H
