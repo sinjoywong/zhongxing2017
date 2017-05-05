@@ -16,7 +16,7 @@
 #define cmin 0
 
 struct MGraph {
-	int *edges[MAX_VALUE];
+	double *edges[MAX_VALUE];
 	int iVertexCount, iEdgeCount;
 };
 struct Path {

@@ -29,14 +29,14 @@ void input() {//数据输入
 	//------ Weight setting---------------
 	Weight_Greenlink = 1;
 	//--for green link
-	/*
+
 	LinkUnitPrice[2][4] = 0;
 	LinkUnitPrice[4][2] = 0;
 	LinkUnitPrice[14][13] = 0;
 	LinkUnitPrice[13][14] = 0;
-	*/
-	//--for green node
 
+	//--for green node
+	
 	LinkUnitPrice[3][7] *= 0.1;
 	LinkUnitPrice[7][3] *= 0.1;
 	LinkUnitPrice[6][7] *= 0.1;
@@ -54,7 +54,7 @@ void input() {//数据输入
 	LinkUnitPrice[13][12] *= 0.1;
 	LinkUnitPrice[12][16] *= 0.1;
 	LinkUnitPrice[16][12] *= 0.1;
-	
+
 	// for red link
 	LinkUnitPrice[11][12] = 999;
 	LinkUnitPrice[12][11] = 999;

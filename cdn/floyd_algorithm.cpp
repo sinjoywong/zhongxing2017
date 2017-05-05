@@ -18,7 +18,7 @@ void Floyd(double **LinkUnitPrice,int &NodeNum_Network, int &LinkNum) {
 		}
 	MGraph mGraph;
 	for (int i = 0; i < MAX_VALUE; i++) {
-		mGraph.edges[i] = new int[MAX_VALUE];
+		mGraph.edges[i] = new double[MAX_VALUE];
 	}
 	mGraph.iVertexCount = NodeNum_Network;
 	mGraph.iEdgeCount = LinkNum;
