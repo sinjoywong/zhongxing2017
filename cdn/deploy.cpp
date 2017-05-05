@@ -4,8 +4,7 @@ using namespace std;
 int NodeNum_Network, LinkNum, NodeNum_Blue, LinkNum_Blue, LinkNum_Red;
 double **LinkUnitPrice;//为了加权更加自由，在此处使用double型
 int **LinkUnitPriceReal;//因为是通过修改单价的邻接矩阵来寻找路径，所以需要一个原本的单价邻接矩阵来计算实际花费
-double **LinkGreen;
-double  **LinkRed;
+double **LinkGreen, **LinkRed;
 
 Path **allPath;
 extern int generation;      //世代数
@@ -17,7 +16,6 @@ extern double pc;          //交叉率
 extern double pm;          //变异率
 extern struct individual bestindividual, worstindividual, currentbest;  //最佳个体
 extern struct individual population[POPSIZE];
-//extern Path **allPathTemp;
 double time_length;
 clock_t start, finish;
 vector<int> vec_greenNode;
@@ -29,17 +27,12 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num, char * filename) {
 	//加入计时器，结尾部分在performevolution()中
 	start = clock();
 	finish = start;
-
 	get_split_number(topo, line_num);
-
 	input();
-	//Allocate_result();
 	Floyd(LinkUnitPrice,NodeNum_Network, LinkNum);
 	generation = 0;
-	
 	generateinitialpopulation();
 	evaluatepopulation();
-
 	//对时间和进化数目的双重控制，若不满足两个条件的任意一种则跳出进化
 	while (time_length < 85) {
 		while (generation < maxgeneration) {
@@ -99,10 +92,8 @@ jumpout:
 	write_result(topo_file, filename);
 	*/
 	Deallocate_Arrays();
-	//Deallocate_result();
 	system("pause");
 }
-
 //----------------main end------------------------
 
 void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {

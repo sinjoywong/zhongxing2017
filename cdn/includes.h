@@ -9,7 +9,7 @@
 #include "time.h"
 #include "stdafx.h"
 #define MAX_VALUE 1000
-#define POPSIZE 10//population number
+#define POPSIZE 100//population number
 #define maximization 1
 #define minimization 2
 #define cmax 100

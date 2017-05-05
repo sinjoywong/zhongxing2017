@@ -37,29 +37,31 @@ void input() {//数据输入
 	*/
 	//--for green node
 
-	LinkUnitPrice[3][7] = 0.1;
-	LinkUnitPrice[7][3] = 0.1;
-	LinkUnitPrice[6][7] = 0.1;
-	LinkUnitPrice[7][6] = 0.1;
-	LinkUnitPrice[8][7] = 0.1;
-	LinkUnitPrice[7][8] = 0.1;
+	LinkUnitPrice[3][7] *= 0.1;
+	LinkUnitPrice[7][3] *= 0.1;
+	LinkUnitPrice[6][7] *= 0.1;
+	LinkUnitPrice[7][6] *= 0.1;
+	LinkUnitPrice[8][7] *= 0.1;
+	LinkUnitPrice[7][8] *= 0.1;
 
-	LinkUnitPrice[10][12] = 0.1;
-	LinkUnitPrice[12][10] = 0.1;
-	LinkUnitPrice[5][12] = 0.1;
-	LinkUnitPrice[12][5] = 0.1;
-	LinkUnitPrice[12][13] = 0.1;
-	LinkUnitPrice[13][12] = 0.1;
-	LinkUnitPrice[12][16] = 0.1;
-	LinkUnitPrice[16][12] = 0.1;
-	//*/
+	LinkUnitPrice[10][12] *= 0.1;
+	LinkUnitPrice[12][10] *= 0.1;
+	LinkUnitPrice[5][12] *= 0.1;
+	LinkUnitPrice[12][5] *= 0.1;
+	LinkUnitPrice[6][12] *= 0.1;
+	LinkUnitPrice[12][6] *= 0.1;
+	LinkUnitPrice[12][13] *= 0.1;
+	LinkUnitPrice[13][12] *= 0.1;
+	LinkUnitPrice[12][16] *= 0.1;
+	LinkUnitPrice[16][12] *= 0.1;
+	
 	// for red link
 	LinkUnitPrice[11][12] = 999;
 	LinkUnitPrice[12][11] = 999;
 	//----------Weight setting end--------------	
 }
 void generateinitialpopulation() { //种群初始化
-	srand((unsigned)time(NULL));
+	// srand((unsigned)time(NULL));
 	for (int i = 0; i < POPSIZE; i++) {
 		int k = rand() % (NodeEnd - NodeStart - 1) + 1;
 		for (int m = 0; m < allPath[NodeStart][k].pathLenght; m++) {
@@ -71,16 +73,6 @@ void generateinitialpopulation() { //种群初始化
 		}
 		//去除环
 		deleteCloseCycles();
-	/*
-		population[0].chrom.push_back(0);
-		population[0].chrom.push_back(2);
-		population[0].chrom.push_back(3);
-		population[0].chrom.push_back(7);
-		population[0].chrom.push_back(8);
-		population[0].chrom.push_back(14);
-		population[0].chrom.push_back(13);
-		population[0].chrom.push_back(17);
-*/
 	}
 	//---------for debug---
 	displayChroms("Initialize");
@@ -88,7 +80,7 @@ void generateinitialpopulation() { //种群初始化
 }
 void generatenextpopulation() { //生成下一代
 	selectoperator();
-	//crossoveroperator();
+	crossoveroperator();
 	mutationoperator();
 }
 void evaluatepopulation() {  //评价个体，求最佳个体
@@ -349,10 +341,9 @@ void mutationoperator() {//变异操作
 					population[i].chrom.insert(population[i].chrom.begin() + kt,
 						allPath[population[i].chrom[ks]][k].path[Length_ks_k - m - 1]);// 将新的ks-k的路径写在kt前面
 				}
-				displayChroms("after mutation");//for debug
-				
+				//displayChroms("after mutation");//for debug
 				deleteCloseCycles();//Delete all closed cycles
-			displayChroms("AfterMutationAndDeleteCycles:");//---for debug---
+			//displayChroms("AfterMutationAndDeleteCycles:");//---for debug---
 			}
 		}
 	}
