@@ -2,7 +2,7 @@
 #include "includes.h"
 using namespace std;
 int NodeNum_Network, LinkNum, NodeNum_Blue, LinkNum_Blue, LinkNum_Red;
-double **LinkUnitPrice;
+double **LinkUnitPrice;//为了加权更加自由，在此处使用double型
 int **LinkUnitPriceReal;//因为是通过修改单价的邻接矩阵来寻找路径，所以需要一个原本的单价邻接矩阵来计算实际花费
 double **LinkGreen;
 double  **LinkRed;
@@ -31,42 +31,12 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num, char * filename) {
 	finish = start;
 
 	get_split_number(topo, line_num);
-	//------ Weight setting---------------
-	Weight_Greenlink = 1;
-	//--for green link
-	/*
-	LinkUnitPrice[2][4] = 0;
-	LinkUnitPrice[4][2] = 0;
-	LinkUnitPrice[14][13] = 0;
-	LinkUnitPrice[13][14] = 0;
-	*/
-	//--for green node
 
-	LinkUnitPrice[3][7] = 0.1;
-	LinkUnitPrice[7][3] = 0.1;
-	LinkUnitPrice[6][7] = 0.1;
-	LinkUnitPrice[7][6] = 0.1;
-	LinkUnitPrice[8][7] = 0.1;
-	LinkUnitPrice[7][8] = 0.1;
-
-	LinkUnitPrice[10][12] = 0.1;
-	LinkUnitPrice[12][10] = 0.1;
-	LinkUnitPrice[5][12] = 0.1;
-	LinkUnitPrice[12][5] = 0.1;
-	LinkUnitPrice[12][13] = 0.1;
-	LinkUnitPrice[13][12] = 0.1;
-	LinkUnitPrice[12][16] = 0.1;
-	LinkUnitPrice[16][12] = 0.1;
-	//*/
-	// for red link
-	LinkUnitPrice[11][12] = 999;
-	LinkUnitPrice[12][11] = 999;
-//----------Weight setting end--------------	
-	 
+	input();
 	//Allocate_result();
 	Floyd(LinkUnitPrice,NodeNum_Network, LinkNum);
 	generation = 0;
-	input();
+	
 	generateinitialpopulation();
 	evaluatepopulation();
 

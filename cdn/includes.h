@@ -44,8 +44,8 @@ struct individual {
 void PrintResult(const MGraph& mGraph, int **iArrPath);
 void Floyd(double **LinkUnitPrice,int &NodeNum_Network, int &LinkNum);
 void Deallocate_Arrays();
-void Allocate_result();
-void Deallocate_result();
+//void Allocate_result();
+//void Deallocate_result();
 void generateinitialpopulation();
 void generatenextpopulation();
 void evaluatepopulation();
@@ -59,8 +59,6 @@ void mutationoperator();
 void input();
 void outputtextreport();
 void deleteCloseCycles();
-
-
 void displayChroms(std::string debugName);
 double getRealCost(int **LinkUnitPriceReal, individual currentbest);
 #endif //SDK_GCC_COPY_INCLUDES_H

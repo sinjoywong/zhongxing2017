@@ -14,6 +14,8 @@ clock_t finish3;
 extern Path **allPath;
 extern int NodeStart, NodeEnd;
 extern int **LinkUnitPriceReal;//为加权自由，令LinkUnitPrice is double, let LinkUnitPriceReal is int
+extern double Weight_Greenlink;
+extern double **LinkUnitPrice;
 
 void input() {//数据输入
 	printf("初始化全局变量:\n");
@@ -22,7 +24,39 @@ void input() {//数据输入
 	//交叉率(0.2-0.99)
 	pc = 0.8;
 	//变异率(0.001-0.1)
-	pm = 0.1;
+	pm = 0.3;
+
+	//------ Weight setting---------------
+	Weight_Greenlink = 1;
+	//--for green link
+	/*
+	LinkUnitPrice[2][4] = 0;
+	LinkUnitPrice[4][2] = 0;
+	LinkUnitPrice[14][13] = 0;
+	LinkUnitPrice[13][14] = 0;
+	*/
+	//--for green node
+
+	LinkUnitPrice[3][7] = 0.1;
+	LinkUnitPrice[7][3] = 0.1;
+	LinkUnitPrice[6][7] = 0.1;
+	LinkUnitPrice[7][6] = 0.1;
+	LinkUnitPrice[8][7] = 0.1;
+	LinkUnitPrice[7][8] = 0.1;
+
+	LinkUnitPrice[10][12] = 0.1;
+	LinkUnitPrice[12][10] = 0.1;
+	LinkUnitPrice[5][12] = 0.1;
+	LinkUnitPrice[12][5] = 0.1;
+	LinkUnitPrice[12][13] = 0.1;
+	LinkUnitPrice[13][12] = 0.1;
+	LinkUnitPrice[12][16] = 0.1;
+	LinkUnitPrice[16][12] = 0.1;
+	//*/
+	// for red link
+	LinkUnitPrice[11][12] = 999;
+	LinkUnitPrice[12][11] = 999;
+	//----------Weight setting end--------------	
 }
 void generateinitialpopulation() { //种群初始化
 	srand((unsigned)time(NULL));
@@ -54,7 +88,7 @@ void generateinitialpopulation() { //种群初始化
 }
 void generatenextpopulation() { //生成下一代
 	selectoperator();
-	crossoveroperator();
+	//crossoveroperator();
 	mutationoperator();
 }
 void evaluatepopulation() {  //评价个体，求最佳个体
@@ -63,9 +97,14 @@ void evaluatepopulation() {  //评价个体，求最佳个体
 	findbestandworstindividual();
 
 	for (int i = 0; i < POPSIZE; i++) {
-	cout << "population[" << i << "] cost:" << population[i].value << " fitness:" << population[i].fitness << endl;
+		cout << "population[" << i << "] ";
+	for (unsigned int ii = 0; ii <population[i].chrom.size(); ii++) {
+		cout <<  population[i].chrom[ii] << " ";
 	}
-	displayChroms("evaluatePopulation");
+	cout << " cost:" << population[i].value << " fitness:" << population[i].fitness << endl;
+	//cout << endl;
+	}
+	//displayChroms("evaluatePopulation");
 }
 //todo:【还没有加入对路径点的约束】
 void calculateobjectvalue() { //计算函数值,
@@ -74,6 +113,7 @@ void calculateobjectvalue() { //计算函数值,
 		for (unsigned int j = 0; j != population[i].chrom.size() - 1; j++) {
 		population[i].value += allPath[population[i].chrom[j]][population[i].chrom[j+1]].pathCost ;
 		}
+		population[i].value = 100 / population[i].value;
 	}
 }
 void calculatefitnessvalue() {//计算适应度
@@ -182,6 +222,7 @@ void crossoveroperator() {//交叉算法
 		p = rand() % 1000 / 1000.0;
 		//p = 0.01;//for debug
 		if (p<pc) {
+			cout << p << " " << pc << " cross start" << endl;
 			point = rand() % (chromlength - 1) + 1;
 			vector<int> repeatNode;
 			for (unsigned int j = 0; j<population[index[i]].chrom.size(); j++) {
@@ -192,8 +233,7 @@ void crossoveroperator() {//交叉算法
 					}
 				}
 			}
-			if (repeatNode.size()>1)                   //当重复节点大于1的时候才进行交叉
-			{
+			if (repeatNode.size()>1) {             //当重复节点大于1的时候才进行交叉
 				int firstNode = 0;                    //选择交叉的第一个点
 				int secondNode = 0;                   //选择交叉的第二个点
 				int crossoverPosition[4];             //记录重复节点出现在染色体中的位置
@@ -209,7 +249,6 @@ void crossoveroperator() {//交叉算法
 					if (population[index[i]].chrom[j] == firstNode) { crossoverPosition[0] = j; }
 					if (population[index[i]].chrom[j] == secondNode) { crossoverPosition[1] = j; }
 				}
-
 				for (unsigned int j = 0; j<population[index[i + 1]].chrom.size(); j++) {
 					if (population[index[i + 1]].chrom[j] == firstNode) { crossoverPosition[2] = j; }
 					if (population[index[i + 1]].chrom[j] == secondNode) { crossoverPosition[3] = j; }
@@ -250,6 +289,7 @@ void crossoveroperator() {//交叉算法
 					population[index[i + 1]].chrom.push_back(chromTemp2[k]);
 				}
 			}
+			deleteCloseCycles();//Delete all closed cycles
 		}
 	}
 	//for debug
@@ -258,14 +298,21 @@ void crossoveroperator() {//交叉算法
 void mutationoperator() {//变异操作
 	double p;
 	for (int i = 0; i<POPSIZE; i++) {
-		srand((unsigned)time(NULL));
+		//srand((unsigned)time(NULL));
 			p = rand() % 1000 / 1000.0;
 			if (p < pm) {
+				cout <<p << " "<< pm <<  " mutation start" << endl;
 				//	srand((unsigned)time(NULL));
 				int ks = rand() % (population[i].chrom.size() - 0 - 3) + 1;//(0,chrom.size()-3] ,此处是下标，并非节点编号本身
 				int kt = ks + 2;
 				int k = rand() % (NodeEnd - NodeStart - 1) + 1;//(NodeStart,NodeEnd)
-
+				//防止变异时所取的随机基因位与中间变量相同
+				if (k == ks || k == kt) {
+					k = rand() % (NodeEnd - NodeStart - 1) + 1;
+				}
+				else {
+					continue;
+				}
 				population[i].chrom.erase(population[i].chrom.begin() + ks + 1, population[i].chrom.begin() + kt);//删除ks与kt之间的元素,保留ks，kt
 
 				// --for debug
@@ -302,10 +349,10 @@ void mutationoperator() {//变异操作
 					population[i].chrom.insert(population[i].chrom.begin() + kt,
 						allPath[population[i].chrom[ks]][k].path[Length_ks_k - m - 1]);// 将新的ks-k的路径写在kt前面
 				}
-			//	displayChroms("after mutation");//for debug
+				displayChroms("after mutation");//for debug
 				
 				deleteCloseCycles();//Delete all closed cycles
-		//	displayChroms("AfterMutationAndDeleteCycles:");//---for debug---
+			displayChroms("AfterMutationAndDeleteCycles:");//---for debug---
 			}
 		}
 	}
@@ -349,6 +396,7 @@ void displayChroms(std::string debugName) {
 		}
 		cout << endl;
 	}
+	cout << endl;
 }
 double getRealCost(int**LinkUnitPriceReal, individual currentbest) {
 	double costTmp=0;
