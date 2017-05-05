@@ -17,15 +17,12 @@ extern double pc;          //交叉率
 extern double pm;          //变异率
 extern struct individual bestindividual, worstindividual, currentbest;  //最佳个体
 extern struct individual population[POPSIZE];
-extern Path **allPathTemp;
+//extern Path **allPathTemp;
 double time_length;
 clock_t start, finish;
-
 vector<int> vec_greenNode;
-
 double  Weight_Greenlink;
 int NodeStart, NodeEnd;
-
 double realCost;
 //----main-----
 void deploy_server(char * topo[MAX_EDGE_NUM], int line_num, char * filename) {
@@ -37,29 +34,39 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num, char * filename) {
 	//------ Weight setting---------------
 	Weight_Greenlink = 1;
 	//--for green link
-	LinkUnitPrice[2][4] = 0.1;
-	LinkUnitPrice[4][2] = 0.1;
-	LinkUnitPrice[14][13] = 0.1;
-	LinkUnitPrice[13][14] = 0.1;
+	/*
+	LinkUnitPrice[2][4] = 0;
+	LinkUnitPrice[4][2] = 0;
+	LinkUnitPrice[14][13] = 0;
+	LinkUnitPrice[13][14] = 0;
+	*/
 	//--for green node
+
 	LinkUnitPrice[3][7] = 0.1;
 	LinkUnitPrice[7][3] = 0.1;
 	LinkUnitPrice[6][7] = 0.1;
 	LinkUnitPrice[7][6] = 0.1;
 	LinkUnitPrice[8][7] = 0.1;
 	LinkUnitPrice[7][8] = 0.1;
+
+	LinkUnitPrice[10][12] = 0.1;
+	LinkUnitPrice[12][10] = 0.1;
+	LinkUnitPrice[5][12] = 0.1;
+	LinkUnitPrice[12][5] = 0.1;
+	LinkUnitPrice[12][13] = 0.1;
+	LinkUnitPrice[13][12] = 0.1;
+	LinkUnitPrice[12][16] = 0.1;
+	LinkUnitPrice[16][12] = 0.1;
+	//*/
 	// for red link
 	LinkUnitPrice[11][12] = 999;
 	LinkUnitPrice[12][11] = 999;
 //----------Weight setting end--------------	
 	 
-	Allocate_result();
-
+	//Allocate_result();
 	Floyd(LinkUnitPrice,NodeNum_Network, LinkNum);
-
 	generation = 0;
 	input();
-
 	generateinitialpopulation();
 	evaluatepopulation();
 
@@ -70,12 +77,10 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num, char * filename) {
 			if (generation >= maxgeneration || time_length > 85) {
 				goto  jumpout;
 			}
-
 			//加入计时器
 			clock_t finish2 = clock();
 			double time_length2 = (double)(finish2 - start) / CLOCKS_PER_SEC;
 		//	std::cout << "generation:" << generation << " time_length2=" << time_length2 << " Cost:" << sucessFinish.successAllCost<< std::endl;
-
 			generatenextpopulation();
 			evaluatepopulation();
 			performevolution();
@@ -87,8 +92,6 @@ jumpout:
 	//计算真实花费
 	realCost = getRealCost(LinkUnitPriceReal, currentbest);
 	cout << "real Cost:" << realCost << endl;
-
-
 	/*
 	string outString;
 	char charTemp[20];
@@ -126,6 +129,7 @@ jumpout:
 	write_result(topo_file, filename);
 	*/
 	Deallocate_Arrays();
+	//Deallocate_result();
 	system("pause");
 }
 
@@ -269,21 +273,23 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 	}
 	//remember to De-allocate arrays
 }
-
 void Deallocate_Arrays() {
 	for (int i = 0; i < NodeNum_Network; i++) {
 		delete[] LinkUnitPrice[i];
-		delete[] allPath[i];
+		delete[] LinkUnitPriceReal[i];
+		//delete[] allPath[i];
 		LinkUnitPrice[i] = NULL;
 		allPath[i] = NULL;
-		delete[] allPathTemp[i];
-		allPathTemp[i] = NULL;
+		//delete[] allPathTemp[i];
+		//allPathTemp[i] = NULL;
+		LinkUnitPriceReal[i] = NULL;
 	}
 	delete[] LinkUnitPrice;
 	delete[] allPath;
 	LinkUnitPrice = NULL;
 	allPath = NULL;
-	delete[] allPathTemp;
-	allPathTemp = NULL;
-	
+	//delete[] allPathTemp;
+	//allPathTemp = NULL;
+	delete[] LinkUnitPriceReal;
+	LinkUnitPriceReal = NULL;
 }

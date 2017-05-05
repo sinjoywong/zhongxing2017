@@ -5,7 +5,7 @@ extern double **LinkUnitPrice;
 extern Path **allPath;
 extern int NodeNum_Network, LinkNum;
 extern struct individual population[POPSIZE];
-Path **allPathTemp;
+//Path **allPathTemp;
 
 int pathLenght = 0;
 
@@ -116,10 +116,8 @@ void PrintResult(const MGraph& mGraph, int **iArrPath) {
 		*/
 	//--end debug
 }
-
-//形参为种群信息及第pop_no个种群
+/*
 void Allocate_result() {
-	//--------------1.将yuanNode改为动态数组---------------
 	allPathTemp = new Path *[NodeNum_Network];
 	for (int i = 0; i < NodeNum_Network; i++) {
 		allPathTemp[i] = new Path[NodeNum_Network];
@@ -134,3 +132,4 @@ void Deallocate_result() {
 	delete[] allPathTemp;
 	allPathTemp = NULL;
 }
+*/

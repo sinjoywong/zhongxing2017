@@ -20,9 +20,9 @@ void input() {//数据输入
 	//最大世代数(100-300)
 	maxgeneration = 20;
 	//交叉率(0.2-0.99)
-	pc = 0.3;
+	pc = 0.8;
 	//变异率(0.001-0.1)
-	pm = 0.01;
+	pm = 0.1;
 }
 void generateinitialpopulation() { //种群初始化
 	srand((unsigned)time(NULL));
@@ -61,14 +61,15 @@ void evaluatepopulation() {  //评价个体，求最佳个体
 	calculateobjectvalue();
 	calculatefitnessvalue();
 	findbestandworstindividual();
+
 	for (int i = 0; i < POPSIZE; i++) {
 	cout << "population[" << i << "] cost:" << population[i].value << " fitness:" << population[i].fitness << endl;
 	}
+	displayChroms("evaluatePopulation");
 }
 //todo:【还没有加入对路径点的约束】
 void calculateobjectvalue() { //计算函数值,
 	for (int i = 0; i<POPSIZE; i++) {
-		//double tmp = 0;
 		population[i].value = 0;
 		for (unsigned int j = 0; j != population[i].chrom.size() - 1; j++) {
 		population[i].value += allPath[population[i].chrom[j]][population[i].chrom[j+1]].pathCost ;
@@ -339,7 +340,6 @@ void deleteCloseCycles() {//去除环，形参为第i条染色体
 		}
 	}
 }
-
 //debug function
 void displayChroms(std::string debugName) {
 	cout << "--For debug:" << debugName << endl;
@@ -350,7 +350,6 @@ void displayChroms(std::string debugName) {
 		cout << endl;
 	}
 }
-
 double getRealCost(int**LinkUnitPriceReal, individual currentbest) {
 	double costTmp=0;
 	for (unsigned int i = 0; i < currentbest.chrom.size()-1; i++) {
