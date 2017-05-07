@@ -9,7 +9,7 @@
 #include "time.h"
 #include "stdafx.h"
 #define MAX_VALUE 1000
-#define POPSIZE 100//population number
+#define POPSIZE 120//population number
 #define maximization 1
 #define minimization 2
 #define cmax 100
@@ -61,4 +61,5 @@ void outputtextreport();
 void deleteCloseCycles();
 void displayChroms(std::string debugName);
 double getRealCost(int **LinkUnitPriceReal, individual currentbest);
+void weightsetting();
 #endif //SDK_GCC_COPY_INCLUDES_H
