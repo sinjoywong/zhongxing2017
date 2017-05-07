@@ -1,5 +1,10 @@
-﻿  genetic_alogrithm.cpp
+﻿  deploy.cpp
+  正在生成代码...
+  正在编译...
+  genetic_alogrithm.cpp
 d:\code_tst\zhongxing\zhongxing2017\cdn\genetic_alogrithm.cpp(235): warning C4101: “j”: 未引用的局部变量
-d:\code_tst\zhongxing\zhongxing2017\cdn\genetic_alogrithm.cpp(411): warning C4018: “>”: 有符号/无符号不匹配
+d:\code_tst\zhongxing\zhongxing2017\cdn\genetic_alogrithm.cpp(429): warning C4018: “>”: 有符号/无符号不匹配
+  floyd_algorithm.cpp
+  正在生成代码...
   cdn.vcxproj -> D:\Code_tst\zhongxing\zhongxing2017\Debug\cdn.exe
   cdn.vcxproj -> D:\Code_tst\zhongxing\zhongxing2017\Debug\cdn.pdb (Full PDB)

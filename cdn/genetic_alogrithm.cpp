@@ -324,7 +324,7 @@ void crossoveroperator() {//交叉算法
 //	displayChroms("after cross");
 }
 void mutationoperator() {//变异操作
-	double p;
+	double p; int k1, k2;
 	for (int i = 0; i<POPSIZE; i++) {
 		//srand((unsigned)time(NULL));
 			p = rand() % 1000 / 1000.0;
@@ -333,37 +333,55 @@ void mutationoperator() {//变异操作
 				//	srand((unsigned)time(NULL));
 				int ks = rand() % (population[i].chrom.size() - 0 - 3) + 1;//(0,chrom.size()-3] ,此处是下标，并非节点编号本身
 				int kt = ks + 2;
-				int k = rand() % (NodeEnd - NodeStart - 1) + 1;//(NodeStart,NodeEnd)
-				int k1,k2;
+				//int k = rand() % (NodeEnd - NodeStart - 1) + 1;//(NodeStart,NodeEnd)
+				
 				//防止变异时所取的随机基因位与中间变量相同,但此时还有可能相同
 				do {
-					k = rand() % (NodeEnd - NodeStart - 1) + 1;
+					//k = rand() % (NodeEnd - NodeStart - 1) + 1;
 					k1 = rand() % (NodeEnd - NodeStart - 1) + 1;
 					k2 = rand() % (NodeEnd - NodeStart - 1) + 1;
-				} while (k == ks || k == kt || k == k1 || k == k2 || ks == k1 || ks == k2 || kt ==k1 || kt ==k2);
+				} while ( ks == k1 || ks == k2 || kt ==k1 || kt ==k2 || k1==k2);
 				population[i].chrom.erase(population[i].chrom.begin() + ks + 1, population[i].chrom.begin() + kt);//删除ks与kt之间的元素,保留ks，kt
-
-				// --for debug
-				//displayChroms("--after erase");
-
+				
+				//displayChroms("--after erase");// --for debug
 				//此处n从1开始，否则写入的染色体会将中间值k重复两遍
 				kt = kt - 1;//erase后索引发生了变化，从ks开始减了1个;
-				int Length_k_kt = allPath[k][population[i].chrom[kt]].pathLenght;
+
+				//k2-kt
+				int Length_k2_kt = allPath[k2][population[i].chrom[kt]].pathLenght;
 
 				//--for debug 
 				/*
 				cout << "k-kt:";
 				for (int n = 0; n < Length_k_kt; n++) {
-					cout << allPath[k][population[i].chrom[kt]].path[n] << " ";
+				cout << allPath[k][population[i].chrom[kt]].path[n] << " ";
 				}
 				cout << endl;
 				*/
 				//---debug end	
-				for (int n = 1; n < Length_k_kt; n++) {
+				for (int n = 1; n < Length_k2_kt; n++) {
 					population[i].chrom.insert(population[i].chrom.begin() + kt,
-						allPath[k][population[i].chrom[kt]].path[Length_k_kt - n - 1]);//将新的k-kt的路径写在kt前面
+						allPath[k2][population[i].chrom[kt]].path[Length_k2_kt - n - 1]);//将新的k-kt的路径写在kt前面
 				}
-				int Length_ks_k = allPath[population[i].chrom[ks]][k].pathLenght;
+
+				//k1-k2
+				int Length_k1_k2 = allPath[k1][k2].pathLenght;
+				//--for debug 
+				/*
+				cout << "k-kt:";
+				for (int n = 0; n < Length_k_kt; n++) {
+				cout << allPath[k][population[i].chrom[kt]].path[n] << " ";
+				}
+				cout << endl;
+				*/
+				//---debug end	
+				for (int n = 1; n < Length_k1_k2; n++) {
+					population[i].chrom.insert(population[i].chrom.begin() + kt,
+						allPath[k1][k2].path[Length_k1_k2 - n - 1]);//将新的k-kt的路径写在kt前面
+				}
+
+				//ks-k1
+				int Length_ks_k1 = allPath[population[i].chrom[ks]][k1].pathLenght;
 				//---------for debug---
 				/*
 				cout << "ks-k:";
@@ -373,9 +391,9 @@ void mutationoperator() {//变异操作
 				cout << endl;
 				*/
 				//---debug end---
-				for (int m = 1; m < Length_ks_k - 1; m++) {//Length_ks_k-1是因为避免与原来基因位（erase左开右闭未删除）重复
+				for (int m = 1; m < Length_ks_k1-1; m++) {//Length_ks_k-1是因为避免与原来基因位（erase左[右)未删除）重复
 					population[i].chrom.insert(population[i].chrom.begin() + kt,
-						allPath[population[i].chrom[ks]][k].path[Length_ks_k - m - 1]);// 将新的ks-k的路径写在kt前面
+						allPath[population[i].chrom[ks]][k1].path[Length_ks_k1 - m - 1]);// 将新的ks-k的路径写在kt前面
 				}
 				//displayChroms("after mutation");//for debug
 				deleteCloseCycles();//Delete all closed cycles
