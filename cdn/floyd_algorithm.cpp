@@ -45,7 +45,6 @@ void Floyd(double **LinkUnitPrice,int &NodeNum_Network, int &LinkNum) {
 		}
 	}
 	PrintResult(mGraph, iArrPath);
-
 	for (int i = 0; i < MAX_VALUE; i++) {
 		delete[] iArrPath[i];
 		iArrPath[i] = NULL;

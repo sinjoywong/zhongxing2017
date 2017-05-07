@@ -20,8 +20,7 @@ extern struct individual population[POPSIZE];
 double time_length;
 clock_t start, finish;
 
-double  Weight_GreenLink;
-double Weight_GreenNode;
+double  Weight_GreenLink,Weight_GreenNode,Weight_RedLink;
 int NodeStart, NodeEnd;
 double realCost;
 //----main-----
@@ -103,9 +102,8 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 	vector<int> vec_link;
 	vector<int> vec_greenlink;
 	vector<int> vec_greenNode;
-	vector<int> vec_rednode;
+	vector<int> vec_redlink;
 	string temp;
-
 	char *test = topo[0];
 	//获得第一行信息
 	for (int i = 0; test[i] != '\n'; i++) {
@@ -141,21 +139,25 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 	LinkUnitPrice = new double *[NodeNum_Network];
 	LinkUnitPriceReal = new int  *[NodeNum_Network];
 	NodeGreen = new double [NodeNum_Network];
+	
 	LinkGreen = new double *[NodeNum_Network];
+	LinkRed = new double *[NodeNum_Network];
 	for (int i = 0; i < NodeNum_Network; i++) {
 		LinkUnitPrice[i] = new double[NodeNum_Network];
 		LinkUnitPriceReal[i] = new int[NodeNum_Network];
 		LinkGreen[i] = new double[NodeNum_Network];
+		LinkRed[i] = new double[NodeNum_Network];
 		memset(LinkUnitPrice[i], 0, NodeNum_Network * sizeof(double));
 		memset(LinkUnitPriceReal[i], 0, NodeNum_Network * sizeof(int));
 		memset(LinkGreen[i], 0, NodeNum_Network * sizeof(double));
+		memset(LinkRed[i], 0, NodeNum_Network * sizeof(double));
 	}
 		memset(NodeGreen, 0, NodeNum_Network * sizeof(double));//将绿色节点的编号初始化为零，在后边的相应出现的绿色节点的位置赋给权重
-	//初始化这两个矩阵 使得不直接连通的线路单价为100000 如果i=j则处理方式为之后更换路线做准备
+	//初始化这两个矩阵 使得不直接连通的线路单价为100000
 	for (int i = 0; i < NodeNum_Network; i++) {
 		for (int j = 0; j < NodeNum_Network; j++) {
-			LinkUnitPrice[i][j] = 1000;
-			LinkUnitPriceReal[i][j] = 1000;
+			LinkUnitPrice[i][j] = 100000;
+			LinkUnitPriceReal[i][j] = 100000;
 		}
 	}
 
@@ -192,7 +194,7 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 			LinkUnitPriceReal[j][i] = LinkUnitPriceReal[i][j];
 		}
 	}
-	//第三，Get green node information
+	//第三，greenNode 
 	for (int j = LinkNum + 4; j< LinkNum + 4 + NodeNum_Blue; j++) {
 		char *test = topo[j];
 		for (int i = 0; test[i] != '\0'; i++) {
@@ -209,7 +211,7 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 	for (unsigned int i = 0; i < vec_greenNode.size(); i++) {
 		NodeGreen[vec_greenNode[i]] = Weight_GreenNode;
 	}
-	//第4：获得green link
+	//第4：获得greenLink
 	for (int j = LinkNum + 5 + NodeNum_Blue; j< LinkNum + 5 + NodeNum_Blue + LinkNum_Blue; j++) {
 		char *test = topo[j];
 		for (int i = 0; test[i] != '\0'; i++) {
@@ -223,7 +225,6 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 			}
 		}
 	}
-
 	for (int i = 0; i != vec_greenlink.size() / 2; i++) {
 		LinkGreen[vec_greenlink[2 * i]][vec_greenlink[2 * i + 1]] = Weight_GreenLink;
 		LinkGreen[vec_greenlink[2 * i + 1]][vec_greenlink[2 * i]] = Weight_GreenLink;
@@ -240,13 +241,13 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 	cout << endl;
 	//-----debug end
 	*/
-	//第5,redNode
-	for (int j = LinkNum +5  + NodeNum_Blue + LinkNum_Blue; j< line_num; j++) {
+	//第5,redLink
+	for (int j = LinkNum +6  + NodeNum_Blue + LinkNum_Blue; j< line_num; j++) {
 		char *test = topo[j];
 		for (int i = 0; test[i] != '\0'; i++) {
 			if ((test[i + 1] == ' ') || (test[i + 1] == '\0')) {
 				temp += test[i];
-				vec_rednode.push_back(atoi(temp.c_str()));
+				vec_redlink.push_back(atoi(temp.c_str()));
 				temp = "";
 			}
 			else {
@@ -254,18 +255,30 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 			}
 		}
 	}
-	//remember to De-allocate arrays
+	for (int i = 0; i != vec_redlink.size() / 2; i++) {
+		LinkRed[vec_redlink[2 * i]][vec_redlink[2 * i + 1]] = Weight_RedLink;
+		LinkRed[vec_redlink[2 * i + 1]][vec_redlink[2 * i]] = Weight_RedLink;
+	}
+
+	//----for debug
+	cout << "greenLink debug:" << endl;
+	for (int i=0;i<NodeNum_Network;i++){
+	for (int j = 0; j < NodeNum_Network; j++) {
+	cout <<"["<< i << " " << j << "] " << LinkRed[i][j] << " ";
+	}
+	cout << endl;
+	}
+	cout << endl;
+	//-----debug end
+	
 }
 void Deallocate_Arrays() {
 	for (int i = 0; i < NodeNum_Network; i++) {
 		delete[] LinkUnitPrice[i];
 		delete[] LinkUnitPriceReal[i];
-		//delete[] allPath[i];
 		delete[] LinkGreen[i];
 		LinkUnitPrice[i] = NULL;
 		allPath[i] = NULL;
-		//delete[] allPathTemp[i];
-		//allPathTemp[i] = NULL;
 		LinkUnitPriceReal[i] = NULL;
 		LinkGreen[i] = NULL;
 	}
@@ -277,8 +290,6 @@ void Deallocate_Arrays() {
 	allPath = NULL;
 	NodeGreen = NULL;
 	LinkGreen = NULL;
-	//delete[] allPathTemp;
-	//allPathTemp = NULL;
 	delete[] LinkUnitPriceReal;
 	LinkUnitPriceReal = NULL;
 }

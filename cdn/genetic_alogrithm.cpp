@@ -14,14 +14,15 @@ clock_t finish3;
 extern Path **allPath;
 extern int NodeStart, NodeEnd;
 extern int **LinkUnitPriceReal;//为加权自由，令LinkUnitPrice is double, let LinkUnitPriceReal is int
-extern double Weight_GreenLink,Weight_GreenNode;
+extern double Weight_GreenLink,Weight_GreenNode,Weight_RedLink;
 extern double **LinkUnitPrice;
 extern double **LinkGreen, **LinkRed;//初始化为零，在绿色、红色路径的邻接矩阵中赋值相应权值
 extern double *NodeGreen;//初始化为零，在绿色节点的位置赋值权值
 void weightsetting() {
 	//------ Weight setting---------------
-	Weight_GreenLink = 500;
-	Weight_GreenNode = 500;
+	Weight_GreenLink = 600;
+	Weight_GreenNode = 600;
+	Weight_RedLink = -1000;
 }
 void input() {//数据输入
 	printf("初始化全局变量:\n");
@@ -32,59 +33,24 @@ void input() {//数据输入
 	//变异率(0.001-0.1)
 	pm = 0.3;
 
-	////------ Weight setting---------------
-	//Weight_GreenLink = 1;
-	//Weight_GreenNode = 1;
+	//为了计算方便，使得条路径花费乘以100
 	for (int i = 0; i < NodeNum_Network; i++) {
 		for (int j = 0; j < NodeNum_Network; j++) {
 			LinkUnitPrice[i][j] = 100 * LinkUnitPrice[i][j];
 		}
 	}
-	/*
-	//--for green link
-
-	LinkUnitPrice[2][4] = 0;
-	LinkUnitPrice[4][2] = 0;
-	LinkUnitPrice[14][13] = 0;
-	LinkUnitPrice[13][14] = 0;
-
-	//--for green node
-	
-	LinkUnitPrice[3][7] *= 0.1;
-	LinkUnitPrice[7][3] *= 0.1;
-	LinkUnitPrice[6][7] *= 0.1;
-	LinkUnitPrice[7][6] *= 0.1;
-	LinkUnitPrice[8][7] *= 0.1;
-	LinkUnitPrice[7][8] *= 0.1;
-
-	LinkUnitPrice[10][12] *= 0.1;
-	LinkUnitPrice[12][10] *= 0.1;
-	LinkUnitPrice[5][12] *= 0.1;
-	LinkUnitPrice[12][5] *= 0.1;
-	LinkUnitPrice[6][12] *= 0.1;
-	LinkUnitPrice[12][6] *= 0.1;
-	LinkUnitPrice[12][13] *= 0.1;
-	LinkUnitPrice[13][12] *= 0.1;
-	LinkUnitPrice[12][16] *= 0.1;
-	LinkUnitPrice[16][12] *= 0.1;
-*/
-	// for red link
-	LinkUnitPrice[11][12] = 999;
-	LinkUnitPrice[12][11] = 999;
-	//----------Weight setting end--------------	
 }
 void generateinitialpopulation() { //种群初始化
 	// srand((unsigned)time(NULL));
 	int k1,k2;
 	for (int i = 0; i < POPSIZE; i++) {
 		int k = rand() % (NodeEnd - NodeStart - 1) + 1;
-		//int k1 = rand() % (NodeEnd - NodeStart - 1) + 1;
 		do {
-		 k1 = rand() % (NodeEnd - NodeStart - 1) + 1;
-		 k2 = rand() % (NodeEnd - NodeStart - 1) + 1;
-		} while (k1 == k || k2 == k || k1 == k2 );
+			 k1 = rand() % (NodeEnd - NodeStart - 1) + 1;
+			 k2 = rand() % (NodeEnd - NodeStart - 1) + 1;
+			} while (k1 == k || k2 == k || k1 == k2 );
 
-		cout << "k:" << k << " k1:"<< k1 << endl; 
+		//cout << "k:" << k << " k1:"<< k1 << endl; 
 		for (int m = 0; m < allPath[NodeStart][k].pathLenght; m++) {
 			population[i].chrom.push_back(allPath[NodeStart][k].path[m]);
 		}
@@ -99,17 +65,9 @@ void generateinitialpopulation() { //种群初始化
 		for (int n = 1; n < allPath[k2][NodeEnd].pathLenght; n++) {
 			population[i].chrom.push_back(allPath[k2][NodeEnd].path[n]);
 		}
-		/*
-		//此处n从1开始，否则写入的染色体会将中间值k重复两遍
-		for (int n = 1; n < allPath[k][NodeEnd].pathLenght; n++) {
-			population[i].chrom.push_back(allPath[k][NodeEnd].path[n]);
-		}
-		*/
 	}
-	displayChroms("Initialize,BeforeDeleteCycle");
-
+	//displayChroms("Initialize,BeforeDeleteCycle");
 	deleteCloseCycles();	//去除环
-
 	displayChroms("Initialize,AfterDeleteCycles");
 }
 void generatenextpopulation() { //生成下一代
@@ -123,22 +81,24 @@ void evaluatepopulation() {  //评价个体，求最佳个体
 	findbestandworstindividual();
 
 	for (int i = 0; i < POPSIZE; i++) {
+		/*
 		cout << "population[" << i << "] ";
 		for (unsigned int ii = 0; ii <population[i].chrom.size(); ii++) {
 		cout <<  population[i].chrom[ii] << " ";
 	}
-		cout << " cost:" << population[i].value << " fitness:" << population[i].fitness << endl;
+	*/
+		cout <<"popuation["<<i<<"] cost:" << population[i].value << " fitness:" << population[i].fitness << endl;
 	}
 	//displayChroms("evaluatePopulation");
 }
-//todo:【还没有加入对路径点的约束】
 void calculateobjectvalue() { //计算函数值,
 	for (int i = 0; i<POPSIZE; i++) {
 		population[i].value = 0;
 		for (unsigned int j = 0; j != population[i].chrom.size() - 1; j++) {
 			population[i].value += (allPath[population[i].chrom[j]][population[i].chrom[j + 1]].pathCost
 				- LinkGreen[population[i].chrom[j]][population[i].chrom[j + 1]]
-				- NodeGreen[population[i].chrom[j]]);
+				- NodeGreen[population[i].chrom[j]]
+				- LinkRed[population[i].chrom[j]][population[i].chrom[j + 1]]);
 		}
 		//population[i].value = 10000  / population[i].value;
 		population[i].value = 10000-(population[i].value);
@@ -248,9 +208,8 @@ void crossoveroperator() {//交叉算法
 
 	for (i = 0; i<POPSIZE - 1; i += 2) {
 		p = rand() % 1000 / 1000.0;
-		//p = 0.01;//for debug
 		if (p<pc) {
-			cout << p << " " << pc << " cross start" << endl;
+			//cout << p << " " << pc << " cross start" << endl;
 			point = rand() % (chromlength - 1) + 1;
 			vector<int> repeatNode;
 			for (unsigned int j = 0; j<population[index[i]].chrom.size(); j++) {
@@ -329,15 +288,13 @@ void mutationoperator() {//变异操作
 		//srand((unsigned)time(NULL));
 			p = rand() % 1000 / 1000.0;
 			if (p < pm) {
-				cout <<p << " "<< pm <<  " mutation start" << endl;
+			//	cout <<p << " "<< pm <<  " mutation start" << endl;
 				//	srand((unsigned)time(NULL));
 				int ks = rand() % (population[i].chrom.size() - 0 - 3) + 1;//(0,chrom.size()-3] ,此处是下标，并非节点编号本身
 				int kt = ks + 2;
-				//int k = rand() % (NodeEnd - NodeStart - 1) + 1;//(NodeStart,NodeEnd)
 				
-				//防止变异时所取的随机基因位与中间变量相同,但此时还有可能相同
+				//防止变异时所取的随机基因位与中间变量相同
 				do {
-					//k = rand() % (NodeEnd - NodeStart - 1) + 1;
 					k1 = rand() % (NodeEnd - NodeStart - 1) + 1;
 					k2 = rand() % (NodeEnd - NodeStart - 1) + 1;
 				} while ( ks == k1 || ks == k2 || kt ==k1 || kt ==k2 || k1==k2);
@@ -397,7 +354,7 @@ void mutationoperator() {//变异操作
 				}
 				//displayChroms("after mutation");//for debug
 				deleteCloseCycles();//Delete all closed cycles
-			//displayChroms("AfterMutationAndDeleteCycles:");//---for debug---
+			//displayChroms("AfterMutationAndDeleteCycles:");
 			}
 		}
 	}
@@ -432,7 +389,6 @@ void deleteCloseCycles() {//去除环，形参为第i条染色体
 		}
 	}
 }
-//debug function
 void displayChroms(std::string debugName) {
 	cout << "--For debug:" << debugName << endl;
 	for (int i = 0; i < POPSIZE; i++) {
