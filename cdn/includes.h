@@ -10,10 +10,6 @@
 #include "stdafx.h"
 #define MAX_VALUE 1000
 #define POPSIZE 200//population number
-#define maximization 1
-#define minimization 2
-#define cmax 100
-#define cmin 0
 
 struct MGraph {
 	double *edges[MAX_VALUE];
@@ -29,7 +25,6 @@ struct Path {
 struct success {
 	Path successPath[1000]; //暂定一百吧，之后可以改
 	int successPathNum;
-	//int successAllCost;
 	double  successAllCost;
 	int time;             //用来记录时间，发现时间不够就输出
 };
@@ -44,12 +39,9 @@ struct individual {
 void PrintResult(const MGraph& mGraph, int **iArrPath);
 void Floyd(double **LinkUnitPrice,int &NodeNum_Network, int &LinkNum);
 void Deallocate_Arrays();
-//void Allocate_result();
-//void Deallocate_result();
 void generateinitialpopulation();
 void generatenextpopulation();
 void evaluatepopulation();
-void calculateobjectvalue();
 void calculatefitnessvalue();
 void findbestandworstindividual();
 void performevolution();

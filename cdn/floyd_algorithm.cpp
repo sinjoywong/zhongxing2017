@@ -115,20 +115,3 @@ void PrintResult(const MGraph& mGraph, int **iArrPath) {
 		*/
 	//--end debug
 }
-/*
-void Allocate_result() {
-	allPathTemp = new Path *[NodeNum_Network];
-	for (int i = 0; i < NodeNum_Network; i++) {
-		allPathTemp[i] = new Path[NodeNum_Network];
-		memset(allPathTemp[i], 0, NodeNum_Network * sizeof(int));
-	}
-}
-void Deallocate_result() {
-	for (int i = 0; i < NodeNum_Network; i++) {
-		delete[] allPathTemp[i];
-		allPathTemp[i] = NULL;
-	}
-	delete[] allPathTemp;
-	allPathTemp = NULL;
-}
-*/

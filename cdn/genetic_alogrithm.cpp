@@ -2,7 +2,6 @@
 using namespace std;
 int generation, maxgeneration;      //ÊÀ´úÊı,×î´óÊÀ´úÊı
 int best_index, worst_index;
-int functionmode = maximization;
 double pc, pm;          //½»²æÂÊ£¬±äÒìÂÊ
 struct individual bestindividual,worstindividual, currentbest;  //×î¼Ñ¸öÌå,×î²î¸öÌå
 struct individual population[POPSIZE];
@@ -20,18 +19,18 @@ extern double **LinkGreen, **LinkRed;//³õÊ¼»¯ÎªÁã£¬ÔÚÂÌÉ«¡¢ºìÉ«Â·¾¶µÄÁÚ½Ó¾ØÕóÖĞ¸
 extern double *NodeGreen;//³õÊ¼»¯ÎªÁã£¬ÔÚÂÌÉ«½ÚµãµÄÎ»ÖÃ¸³ÖµÈ¨Öµ
 void weightsetting() {
 	//------ Weight setting---------------
-	Weight_GreenLink = 600;
-	Weight_GreenNode = 600;
-	Weight_RedLink = -1000;
+	Weight_GreenLink = 1000;
+	Weight_GreenNode = 1000;
+	Weight_RedLink = -600;
 }
 void input() {//Êı¾İÊäÈë
 	printf("³õÊ¼»¯È«¾Ö±äÁ¿:\n");
 	//×î´óÊÀ´úÊı(100-300)
 	maxgeneration = 20;
 	//½»²æÂÊ(0.2-0.99)
-	pc = 0.8;
+	pc = 0.7;
 	//±äÒìÂÊ(0.001-0.1)
-	pm = 0.3;
+	pm = 0.2;
 
 	//ÎªÁË¼ÆËã·½±ã£¬Ê¹µÃÌõÂ·¾¶»¨·Ñ³ËÒÔ100
 	for (int i = 0; i < NodeNum_Network; i++) {
@@ -41,14 +40,15 @@ void input() {//Êı¾İÊäÈë
 	}
 }
 void generateinitialpopulation() { //ÖÖÈº³õÊ¼»¯
-	// srand((unsigned)time(NULL));
-	int k1,k2;
+	 srand((unsigned)time(NULL));
+	int k1,k2,k3;
 	for (int i = 0; i < POPSIZE; i++) {
 		int k = rand() % (NodeEnd - NodeStart - 1) + 1;
 		do {
 			 k1 = rand() % (NodeEnd - NodeStart - 1) + 1;
 			 k2 = rand() % (NodeEnd - NodeStart - 1) + 1;
-			} while (k1 == k || k2 == k || k1 == k2 );
+			 k3 = rand() % (NodeEnd - NodeStart - 1) + 1;
+			} while (k1 == k || k2 == k || k3 ==k || k1 == k2 || k1 == k3 || k2 == k3);
 
 		//cout << "k:" << k << " k1:"<< k1 << endl; 
 		for (int m = 0; m < allPath[NodeStart][k].pathLenght; m++) {
@@ -61,9 +61,12 @@ void generateinitialpopulation() { //ÖÖÈº³õÊ¼»¯
 		for (int m = 1; m < allPath[k1][k2].pathLenght; m++) {
 			population[i].chrom.push_back(allPath[k1][k2].path[m]);
 		}
+		for (int m = 1; m < allPath[k2][k3].pathLenght; m++) {
+			population[i].chrom.push_back(allPath[k2][k3].path[m]);
+		}
 		//´Ë´¦n´Ó1¿ªÊ¼£¬·ñÔòĞ´ÈëµÄÈ¾É«Ìå»á½«ÖĞ¼äÖµkÖØ¸´Á½±é
-		for (int n = 1; n < allPath[k2][NodeEnd].pathLenght; n++) {
-			population[i].chrom.push_back(allPath[k2][NodeEnd].path[n]);
+		for (int n = 1; n < allPath[k3][NodeEnd].pathLenght; n++) {
+			population[i].chrom.push_back(allPath[k3][NodeEnd].path[n]);
 		}
 	}
 	//displayChroms("Initialize,BeforeDeleteCycle");
@@ -76,10 +79,8 @@ void generatenextpopulation() { //Éú³ÉÏÂÒ»´ú
 	mutationoperator();
 }
 void evaluatepopulation() {  //ÆÀ¼Û¸öÌå£¬Çó×î¼Ñ¸öÌå
-	calculateobjectvalue();
 	calculatefitnessvalue();
 	findbestandworstindividual();
-
 	for (int i = 0; i < POPSIZE; i++) {
 		/*
 		cout << "population[" << i << "] ";
@@ -87,42 +88,24 @@ void evaluatepopulation() {  //ÆÀ¼Û¸öÌå£¬Çó×î¼Ñ¸öÌå
 		cout <<  population[i].chrom[ii] << " ";
 	}
 	*/
-		cout <<"popuation["<<i<<"] cost:" << population[i].value << " fitness:" << population[i].fitness << endl;
+		cout <<"Pop["<<i<<"]:"  << " Fit:" << population[i].fitness << " Chrom:";
+			for (unsigned int ii = 0; ii <population[i].chrom.size(); ii++) {
+				cout << population[i].chrom[ii] << " ";
+			}
+			cout << endl;
 	}
 	//displayChroms("evaluatePopulation");
 }
-void calculateobjectvalue() { //¼ÆËãº¯ÊıÖµ,
+void calculatefitnessvalue() { //¼ÆËãº¯ÊıÖµ,
 	for (int i = 0; i<POPSIZE; i++) {
-		population[i].value = 0;
+		population[i].fitness = 0;
 		for (unsigned int j = 0; j != population[i].chrom.size() - 1; j++) {
-			population[i].value += (allPath[population[i].chrom[j]][population[i].chrom[j + 1]].pathCost
+			population[i].fitness += (allPath[population[i].chrom[j]][population[i].chrom[j + 1]].pathCost
 				- LinkGreen[population[i].chrom[j]][population[i].chrom[j + 1]]
 				- NodeGreen[population[i].chrom[j]]
 				- LinkRed[population[i].chrom[j]][population[i].chrom[j + 1]]);
 		}
-		//population[i].value = 10000  / population[i].value;
-		population[i].value = 10000-(population[i].value);
-	}
-}
-void calculatefitnessvalue() {//¼ÆËãÊÊÓ¦¶È
-	double temp;
-	for (int i = 0; i<POPSIZE; i++) {
-		if (functionmode == maximization) {
-			if ((population[i].value + cmin)>0.0) {
-				temp = cmin + population[i].value;
-			}
-			else {
-				temp = 0.0;
-			}
-		}
-		else if (functionmode == minimization) {
-			if (population[i].value<cmax) {
-				temp = cmax - population[i].value;
-			}
-			else { temp = 0.0; }
-		}
-		//population[i].fitness = temp;
-		population[i].fitness = population[i].value;
+		population[i].fitness = 10000-(population[i].fitness);
 	}
 }
 void findbestandworstindividual() { //Çó×î¼Ñ¸öÌåºÍ×î²î¸öÌå
@@ -165,7 +148,7 @@ void selectoperator() {//±ÈÀıÑ¡ÔñËã·¨
 	int i, index;
 	double p, sum = 0.0;
 	double cfitness[POPSIZE];
-
+	srand((unsigned)time(NULL));
 	struct individual newpopulation[POPSIZE];
 	for (i = 0; i<POPSIZE; i++) {
 		sum += population[i].fitness;
@@ -276,16 +259,16 @@ void crossoveroperator() {//½»²æËã·¨
 					population[index[i + 1]].chrom.push_back(chromTemp2[k]);
 				}
 			}
-			//deleteCloseCycles();//Delete all closed cycles
+			deleteCloseCycles();//Delete all closed cycles
 		}
 	}
 	//for debug
 //	displayChroms("after cross");
 }
 void mutationoperator() {//±äÒì²Ù×÷
-	double p; int k1, k2;
+	double p; int k1, k2,k3;	
+	srand((unsigned)time(NULL));
 	for (int i = 0; i<POPSIZE; i++) {
-		//srand((unsigned)time(NULL));
 			p = rand() % 1000 / 1000.0;
 			if (p < pm) {
 			//	cout <<p << " "<< pm <<  " mutation start" << endl;
@@ -297,15 +280,16 @@ void mutationoperator() {//±äÒì²Ù×÷
 				do {
 					k1 = rand() % (NodeEnd - NodeStart - 1) + 1;
 					k2 = rand() % (NodeEnd - NodeStart - 1) + 1;
-				} while ( ks == k1 || ks == k2 || kt ==k1 || kt ==k2 || k1==k2);
+					k3 = rand() % (NodeEnd - NodeStart - 1) + 1;
+				} while ( ks == k1 || ks == k2 || kt ==k1 || kt ==k2 || k1==k2 || ks == k3 || kt == k3 || k3 == k1 || k3 == k2);
 				population[i].chrom.erase(population[i].chrom.begin() + ks + 1, population[i].chrom.begin() + kt);//É¾³ıksÓëktÖ®¼äµÄÔªËØ,±£Áôks£¬kt
 				
 				//displayChroms("--after erase");// --for debug
 				//´Ë´¦n´Ó1¿ªÊ¼£¬·ñÔòĞ´ÈëµÄÈ¾É«Ìå»á½«ÖĞ¼äÖµkÖØ¸´Á½±é
 				kt = kt - 1;//eraseºóË÷Òı·¢ÉúÁË±ä»¯£¬´Óks¿ªÊ¼¼õÁË1¸ö;
 
-				//k2-kt
-				int Length_k2_kt = allPath[k2][population[i].chrom[kt]].pathLenght;
+				//k3-kt
+				int Length_k3_kt = allPath[k3][population[i].chrom[kt]].pathLenght;
 
 				//--for debug 
 				/*
@@ -316,11 +300,25 @@ void mutationoperator() {//±äÒì²Ù×÷
 				cout << endl;
 				*/
 				//---debug end	
-				for (int n = 1; n < Length_k2_kt; n++) {
+				for (int n = 1; n < Length_k3_kt; n++) {
 					population[i].chrom.insert(population[i].chrom.begin() + kt,
-						allPath[k2][population[i].chrom[kt]].path[Length_k2_kt - n - 1]);//½«ĞÂµÄk-ktµÄÂ·¾¶Ğ´ÔÚktÇ°Ãæ
+						allPath[k3][population[i].chrom[kt]].path[Length_k3_kt - n - 1]);//½«ĞÂµÄk-ktµÄÂ·¾¶Ğ´ÔÚktÇ°Ãæ
 				}
-
+				//k2-k3
+				int Length_k2_k3 = allPath[k2][k3].pathLenght;
+				//--for debug 
+				/*
+				cout << "k-kt:";
+				for (int n = 0; n < Length_k_kt; n++) {
+				cout << allPath[k][population[i].chrom[kt]].path[n] << " ";
+				}
+				cout << endl;
+				*/
+				//---debug end	
+				for (int n = 1; n < Length_k2_k3; n++) {
+					population[i].chrom.insert(population[i].chrom.begin() + kt,
+						allPath[k2][k3].path[Length_k2_k3 - n - 1]);//½«ĞÂµÄk-ktµÄÂ·¾¶Ğ´ÔÚktÇ°Ãæ
+				}
 				//k1-k2
 				int Length_k1_k2 = allPath[k1][k2].pathLenght;
 				//--for debug 
@@ -363,10 +361,10 @@ void outputtextreport() {//Êı¾İÊä³ö
 	double average;
 	sum = 0.0;
 	for (int i = 0; i<POPSIZE; i++) {
-		sum += population[i].value;
+		sum += population[i].fitness;
 	}
 	average = sum / POPSIZE;
-	printf("µ±Ç°ÊÀ´ú=%d\nµ±Ç°ÊÀ´úÆ½¾ùº¯ÊıÖµ=%f\nµ±Ç°ÊÀ´ú×î¸ßº¯ÊıÖµ=%f\n", generation, average, population[best_index].value);
+	printf("µ±Ç°ÊÀ´ú=%d\nµ±Ç°ÊÀ´úÆ½¾ùº¯ÊıÖµ=%f\nµ±Ç°ÊÀ´ú×î¸ßº¯ÊıÖµ=%f\n", generation, average, population[best_index].fitness);
 	cout << "chrom:";
 	for (unsigned int i = 0; i < population[best_index].chrom.size(); i++) {
 		cout << population[best_index].chrom[i] << "->";
