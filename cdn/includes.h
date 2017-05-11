@@ -58,5 +58,5 @@ void deleteCloseCycles();
 void displayChroms(std::string debugName);
 //int getRealCost(int **LinkUnitPriceReal, individual currentbest);
 int getRealCost();
-void weightsetting();
+//void weightsetting();
 #endif //SDK_GCC_COPY_INCLUDES_H

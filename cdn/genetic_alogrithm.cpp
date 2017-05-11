@@ -17,12 +17,15 @@ extern double Weight_GreenLink,Weight_GreenNode,Weight_RedLink;
 extern double **LinkUnitPrice;
 extern double **LinkGreen, **LinkRed;//初始化为零，在绿色、红色路径的邻接矩阵中赋值相应权值
 extern double *NodeGreen;//初始化为零，在绿色节点的位置赋值权值
-void weightsetting() {
+int NodeNumLimit,NodeGreenLimit,LinkGreenLimit,NodeRedLimit;
+
+//void weightsetting() {
 	//------ Weight setting---------------
-	Weight_GreenNode = 2000;
-	Weight_GreenLink = 4000;
-	Weight_RedLink = -999;
-}
+//	Weight_GreenNode = 2000 * NodeGreenLimit;
+//	Weight_GreenLink = 4000 * LinkGreenLimit;
+//	Weight_RedLink = -999 * NodeRedLimit;
+	//NodeNumLimit = 1;
+//}
 void input() {//数据输入
 	printf("初始化全局变量:\n");
 	//最大世代数
@@ -98,13 +101,22 @@ void evaluatepopulation() {  //评价个体，求最佳个体
 	//displayChroms("evaluatePopulation");
 }
 void calculatefitnessvalue() { //计算函数值,
+	int NodeNumPunish;
 	for (int i = 0; i<POPSIZE; i++) {
 		population[i].fitness = 0;
+		if (population[i].chrom.size() > 9) {
+			NodeNumPunish = 3000;
+		}
+		else {
+			NodeNumPunish = 0;
+		}
 		for (unsigned int j = 0; j != population[i].chrom.size() - 1; j++) {
 			population[i].fitness += (allPath[population[i].chrom[j]][population[i].chrom[j + 1]].pathCost
 				- LinkGreen[population[i].chrom[j]][population[i].chrom[j + 1]]
 				- NodeGreen[population[i].chrom[j]]
-				- LinkRed[population[i].chrom[j]][population[i].chrom[j + 1]]);
+				- LinkRed[population[i].chrom[j]][population[i].chrom[j + 1]]
+	//			+ NodeNumLimit * NodeNumPunish
+				);
 		}
 		population[i].fitness = NodeNum_Network * 500 -(population[i].fitness);
 	}
@@ -213,7 +225,7 @@ void quickSort(individual population[], int l, int r)
 {
 	if (l< r)
 	{
-		int i = l, j = r, x = population[l].fitness;
+		int i = l, j = r;double x = population[l].fitness;
 		while (i < j)
 		{
 			while (i < j && population[j].fitness >= x) // 从右向左找第一个小于x的数  
@@ -231,23 +243,21 @@ void quickSort(individual population[], int l, int r)
 	}
 }
 //-------new selector end--------------------------
-
 void crossoveroperator() {//交叉算法
-	int i, j;
 	int index[POPSIZE];
 	int point, temp;
 	double p;
-	for (i = 0; i<POPSIZE; i++) {
+	for (int i = 0; i<POPSIZE; i++) {
 		index[i] = i;
 	}
-	for (i = 0; i<POPSIZE; i++) {
+	for (int i = 0; i<POPSIZE; i++) {
 		point = rand() % (POPSIZE - i);
 		temp = index[i];
 		index[i] = index[point + i];
 		index[point + i] = temp;
 	}
 	srand((unsigned)time(NULL));
-	for (i = 0; i<POPSIZE - 1; i += 2) {
+	for (int i = 0; i<POPSIZE - 1; i += 2) {
 		p = rand() % 1000 / 1000.0;
 		if (p<pc) {
 			//cout << p << " " << pc << " cross start" << endl;
@@ -433,7 +443,7 @@ void outputtextreport() {//数据输出
 }
 void deleteCloseCycles() {//去除环，形参为第i条染色体
 	for (int i = 0; i < POPSIZE; i++) {
-		int dupIndex_end;
+		unsigned int dupIndex_end;
 		for (unsigned int ii = 0; ii < population[i].chrom.size(); ii++) {
 			dupIndex_end = ii;
 			for (unsigned int j = ii + 1; j < population[i].chrom.size(); j++) {

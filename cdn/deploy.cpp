@@ -17,6 +17,7 @@ extern double pc;          //交叉率
 extern double pm;          //变异率
 extern struct individual bestindividual, worstindividual, currentbest;  //最佳个体
 extern struct individual population[POPSIZE];
+extern int NodeNumLimit, NodeGreenLimit, LinkGreenLimit, NodeRedLimit;
 double time_length;
 clock_t start, finish;
 
@@ -28,7 +29,7 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num, char * filename) {
 	//加入计时器，结尾部分在performevolution()中
 	start = clock();
 	finish = start;
-	weightsetting();
+	//weightsetting();
 	get_split_number(topo, line_num);
 	input();
 	Floyd(LinkUnitPrice, NodeNum_Network, LinkNum);
@@ -96,6 +97,7 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 	vector<int> vec_redlink;
 	string temp;
 	char *test = topo[0];
+	
 	//获得第一行信息
 	for (int i = 0; test[i] != '\n'; i++) {
 		if ((test[i + 1] == ' ') || (test[i + 1] == '\n')) {
@@ -107,7 +109,16 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 			temp += test[i];
 		}
 	}
-	test = topo[2];
+	NodeNumLimit = data[0];
+	NodeGreenLimit = data[1];
+	LinkGreenLimit = data[2];
+	NodeRedLimit = data[3];
+	Weight_GreenNode = 2000 * NodeGreenLimit;
+	Weight_GreenLink = 4000 * LinkGreenLimit;
+	Weight_RedLink = -999 * NodeRedLimit;
+
+	data.clear();
+    test = topo[2];
 	for (int i = 0; test[i] != '\n'; i++) {
 		if ((test[i + 1] == ' ') || (test[i + 1] == '\n')) {
 			temp += test[i];
@@ -156,7 +167,8 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 	//Get link information
 	//前2行格式固定,链路信息从第3行开始数
 	//第二获得从第3行开始到拓扑链路信息结束
-	for (int j = 2; j < LinkNum + 3; j++) {
+	data.clear();
+	for (int j = 4; j < LinkNum + 5; j++) {
 		char *test = topo[j];
 		if (test[0] != '\n') {
 			for (int i = 0; test[i] != '\n'; i++) {
@@ -184,7 +196,8 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 		}
 	}
 	//第三，greenNode 
-	for (int j = LinkNum + 4; j< LinkNum + 4 + NodeNum_Blue; j++) {
+	data.clear();
+	for (int j = LinkNum + 6; j< LinkNum + 6 + NodeNum_Blue; j++) {
 		char *test = topo[j];
 		for (int i = 0; test[i] != '\0'; i++) {
 			if ((test[i + 1] == ' ') || (test[i + 1] == '\0')) {
@@ -201,7 +214,8 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 		NodeGreen[vec_greenNode[i]] = Weight_GreenNode;
 	}
 	//第4：获得greenLink
-	for (int j = LinkNum + 5 + NodeNum_Blue; j< LinkNum + 5 + NodeNum_Blue + LinkNum_Blue; j++) {
+
+	for (int j = LinkNum + 7 + NodeNum_Blue; j< LinkNum + 7 + NodeNum_Blue + LinkNum_Blue; j++) {
 		char *test = topo[j];
 		for (int i = 0; test[i] != '\0'; i++) {
 			if ((test[i + 1] == ' ') || (test[i + 1] == '\0')) {
@@ -231,7 +245,7 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 	//-----debug end
 	*/
 	//第5,redLink
-	for (int j = LinkNum +6  + NodeNum_Blue + LinkNum_Blue; j< line_num; j++) {
+	for (int j = LinkNum +8  + NodeNum_Blue + LinkNum_Blue; j< line_num; j++) {
 		char *test = topo[j];
 		for (int i = 0; test[i] != '\0'; i++) {
 			if ((test[i + 1] == ' ') || (test[i + 1] == '\0')) {

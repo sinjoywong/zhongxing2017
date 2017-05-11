@@ -1,0 +1,24 @@
+﻿  stdafx.cpp
+  cdn.cpp
+cdn.cpp(35): fatal error C1010: 在查找预编译头时遇到意外的文件结尾。是否忘记了向源中添加“#include "stdafx.h"”?
+  deploy.cpp
+deploy.cpp(300): fatal error C1010: 在查找预编译头时遇到意外的文件结尾。是否忘记了向源中添加“#include "stdafx.h"”?
+  floyd_algorithm.cpp
+floyd_algorithm.cpp(118): fatal error C1010: 在查找预编译头时遇到意外的文件结尾。是否忘记了向源中添加“#include "stdafx.h"”?
+  genetic_alogrithm.cpp
+genetic_alogrithm.cpp(477): fatal error C1010: 在查找预编译头时遇到意外的文件结尾。是否忘记了向源中添加“#include "stdafx.h"”?
+  io.cpp
+io.cpp(53): error C3861: “strerror”: 找不到标识符
+io.cpp(53): error C3861: “PRINT”: 找不到标识符
+io.cpp(56): error C3861: “PRINT”: 找不到标识符
+io.cpp(65): error C3861: “malloc”: 找不到标识符
+io.cpp(66): error C3861: “strncpy”: 找不到标识符
+io.cpp(71): error C3861: “PRINT”: 找不到标识符
+io.cpp(50): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  C:\Program Files (x86)\Windows Kits\10\Include\10.0.10240.0\ucrt\stdio.h(205): note: 参见“fopen”的声明
+io.cpp(86): error C3861: “free”: 找不到标识符
+io.cpp(98): error C3861: “strerror”: 找不到标识符
+io.cpp(98): error C3861: “PRINT”: 找不到标识符
+io.cpp(101): error C3861: “PRINT”: 找不到标识符
+io.cpp(95): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  C:\Program Files (x86)\Windows Kits\10\Include\10.0.10240.0\ucrt\stdio.h(205): note: 参见“fopen”的声明
