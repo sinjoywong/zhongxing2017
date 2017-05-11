@@ -22,7 +22,7 @@ clock_t start, finish;
 
 double  Weight_GreenLink,Weight_GreenNode,Weight_RedLink;
 int NodeStart, NodeEnd;
-double realCost;
+int realCost;
 //----main-----
 void deploy_server(char * topo[MAX_EDGE_NUM], int line_num, char * filename) {
 	//加入计时器，结尾部分在performevolution()中
@@ -31,7 +31,7 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num, char * filename) {
 	weightsetting();
 	get_split_number(topo, line_num);
 	input();
-	Floyd(LinkUnitPrice,NodeNum_Network, LinkNum);
+	Floyd(LinkUnitPrice, NodeNum_Network, LinkNum);
 	generation = 0;
 	generateinitialpopulation();
 	evaluatepopulation();
@@ -45,7 +45,7 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num, char * filename) {
 			//加入计时器
 			clock_t finish2 = clock();
 			double time_length2 = (double)(finish2 - start) / CLOCKS_PER_SEC;
-		//	std::cout << "generation:" << generation << " time_length2=" << time_length2 << " Cost:" << sucessFinish.successAllCost<< std::endl;
+			//	std::cout << "generation:" << generation << " time_length2=" << time_length2 << " Cost:" << sucessFinish.successAllCost<< std::endl;
 			generatenextpopulation();
 			evaluatepopulation();
 			performevolution();
@@ -53,47 +53,38 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num, char * filename) {
 		}
 	}
 jumpout:
-	printf("最大函数值等于：%f\n", currentbest.fitness);
+	printf("最大函数值等于：%f ", currentbest.fitness);
 	//计算真实花费
-	realCost = getRealCost(LinkUnitPriceReal, currentbest);
+	//realCost = getRealCost(LinkUnitPriceReal, currentbest);
+	realCost = getRealCost();
 	cout << "real Cost:" << realCost << endl;
-	/*
+
+	for (unsigned int i = 0; i < population[best_index].chrom.size(); i++) {
+		cout << population[best_index].chrom[i] << "->";
+	}
+	cout << endl;
+
+	//---output---
 	string outString;
 	char charTemp[20];
 	//sprintf(charTemp, "%d", sucessFinish.successPathNum);
-	_itoa(sucessFinish.successPathNum, charTemp, 10);
-	outString = outString + charTemp + "\n\n";
-	for (int i = 0; i < sucessFinish.successPathNum; i++) {
-		for (int j = 0; j < sucessFinish.successPath[i].pathLenght; j++) {
-	//		sprintf(charTemp, "%d", sucessFinish.successPath[i].path[j]);
-			_itoa(sucessFinish.successPath[i].path[j], charTemp, 10);
-			outString = outString + charTemp + ' ';
-		}
-//		sprintf(charTemp, "%d", sucessFinish.successPath[i].pathWitch);
-			_itoa(sucessFinish.successPath[i].pathWitch, charTemp, 10);
-		outString += charTemp;
-		outString += '\n';
-	}
-
-	//for debug,输出总花费到文件
-	
-	//sprintf(charTemp, "%d", sucessFinish.successAllCost);
-	_itoa(sucessFinish.successAllCost,charTemp, 10);
+	outString += "Cost:";
+	_itoa(realCost, charTemp, 10);
 	outString += charTemp;
 	outString += '\n';
 
-	int allPrice = NodeNum_Demand* ServerUnitPrice;
-	_itoa(allPrice, charTemp, 10);
-	outString += charTemp;
-	//debug end
-	
-	//不需要这个
-	//   outString.pop_back();//write_result()中输出了一个换行符，因此这里删去一个换行符
+	outString += "PathLength:";
+	_itoa(population[best_index].chrom.size(), charTemp, 10);
+	outString = outString + charTemp + "\n";
+
+	outString += "Path:";
+	for (unsigned int i = 0; i < population[best_index].chrom.size(); i++) {
+		_itoa(population[best_index].chrom[i], charTemp, 10);
+		outString = outString + charTemp + ' ';
+	}
 	const char *topo_file;
 	topo_file = outString.c_str();
 	write_result(topo_file, filename);
-	*/
-	Deallocate_Arrays();
 	system("pause");
 }
 //----------------main end------------------------
@@ -116,7 +107,6 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 			temp += test[i];
 		}
 	}
-
 	test = topo[2];
 	for (int i = 0; test[i] != '\n'; i++) {
 		if ((test[i + 1] == ' ') || (test[i + 1] == '\n')) {
@@ -160,7 +150,6 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 			LinkUnitPriceReal[i][j] = 100000;
 		}
 	}
-
 // 起点及终点的节点编号
 	NodeStart = 0;
 	NodeEnd = NodeNum_Network - 1;
@@ -261,6 +250,7 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 	}
 
 	//----for debug
+	/*
 	cout << "greenLink debug:" << endl;
 	for (int i=0;i<NodeNum_Network;i++){
 	for (int j = 0; j < NodeNum_Network; j++) {
@@ -269,8 +259,8 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 	cout << endl;
 	}
 	cout << endl;
+	*/
 	//-----debug end
-	
 }
 void Deallocate_Arrays() {
 	for (int i = 0; i < NodeNum_Network; i++) {

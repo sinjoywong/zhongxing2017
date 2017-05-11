@@ -31,7 +31,7 @@ struct success {
 struct individual {
 	//int *chrom;
 	std::vector<int> chrom;
-	double value;//函数值
+	//double value;//函数值
 	double fitness;      //适应度
 };
 
@@ -46,12 +46,17 @@ void calculatefitnessvalue();
 void findbestandworstindividual();
 void performevolution();
 void selectoperator();
+void one_fourth_selectoperator();
+void swap(individual population[], int i, int j);
+void BubbleSort(individual population[]);
+void quickSort(individual population[], int l, int r);
 void crossoveroperator();
 void mutationoperator();
 void input();
 void outputtextreport();
 void deleteCloseCycles();
 void displayChroms(std::string debugName);
-double getRealCost(int **LinkUnitPriceReal, individual currentbest);
+//int getRealCost(int **LinkUnitPriceReal, individual currentbest);
+int getRealCost();
 void weightsetting();
 #endif //SDK_GCC_COPY_INCLUDES_H

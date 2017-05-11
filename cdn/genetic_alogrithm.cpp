@@ -19,18 +19,18 @@ extern double **LinkGreen, **LinkRed;//³õÊ¼»¯ÎªÁã£¬ÔÚÂÌÉ«¡¢ºìÉ«Â·¾¶µÄÁÚ½Ó¾ØÕóÖĞ¸
 extern double *NodeGreen;//³õÊ¼»¯ÎªÁã£¬ÔÚÂÌÉ«½ÚµãµÄÎ»ÖÃ¸³ÖµÈ¨Öµ
 void weightsetting() {
 	//------ Weight setting---------------
-	Weight_GreenLink = 1000;
-	Weight_GreenNode = 1000;
-	Weight_RedLink = -600;
+	Weight_GreenNode = 2000;
+	Weight_GreenLink = 4000;
+	Weight_RedLink = -999;
 }
 void input() {//Êı¾İÊäÈë
 	printf("³õÊ¼»¯È«¾Ö±äÁ¿:\n");
-	//×î´óÊÀ´úÊı(100-300)
+	//×î´óÊÀ´úÊı
 	maxgeneration = 20;
-	//½»²æÂÊ(0.2-0.99)
-	pc = 0.7;
-	//±äÒìÂÊ(0.001-0.1)
-	pm = 0.2;
+	//½»²æÂÊ
+	pc = 0.4;
+	//±äÒìÂÊ
+	pm = 0.1;
 
 	//ÎªÁË¼ÆËã·½±ã£¬Ê¹µÃÌõÂ·¾¶»¨·Ñ³ËÒÔ100
 	for (int i = 0; i < NodeNum_Network; i++) {
@@ -39,16 +39,18 @@ void input() {//Êı¾İÊäÈë
 		}
 	}
 }
+
 void generateinitialpopulation() { //ÖÖÈº³õÊ¼»¯
 	 srand((unsigned)time(NULL));
-	int k1,k2,k3;
+	int k1,k2,k3,k4;
 	for (int i = 0; i < POPSIZE; i++) {
 		int k = rand() % (NodeEnd - NodeStart - 1) + 1;
 		do {
 			 k1 = rand() % (NodeEnd - NodeStart - 1) + 1;
 			 k2 = rand() % (NodeEnd - NodeStart - 1) + 1;
 			 k3 = rand() % (NodeEnd - NodeStart - 1) + 1;
-			} while (k1 == k || k2 == k || k3 ==k || k1 == k2 || k1 == k3 || k2 == k3);
+			 k4 = rand() % (NodeEnd - NodeStart - 1) + 1;
+			} while (k1 == k || k2 == k || k3 ==k || k1 == k2 || k1 == k3 || k2 == k3 || k == k4 || k1 == k4 || k2 ==k4||k3==k4);
 
 		//cout << "k:" << k << " k1:"<< k1 << endl; 
 		for (int m = 0; m < allPath[NodeStart][k].pathLenght; m++) {
@@ -64,17 +66,22 @@ void generateinitialpopulation() { //ÖÖÈº³õÊ¼»¯
 		for (int m = 1; m < allPath[k2][k3].pathLenght; m++) {
 			population[i].chrom.push_back(allPath[k2][k3].path[m]);
 		}
+		for (int m = 1; m < allPath[k3][k4].pathLenght; m++) {
+			population[i].chrom.push_back(allPath[k3][k4].path[m]);
+		}
 		//´Ë´¦n´Ó1¿ªÊ¼£¬·ñÔòĞ´ÈëµÄÈ¾É«Ìå»á½«ÖĞ¼äÖµkÖØ¸´Á½±é
-		for (int n = 1; n < allPath[k3][NodeEnd].pathLenght; n++) {
-			population[i].chrom.push_back(allPath[k3][NodeEnd].path[n]);
+		for (int n = 1; n < allPath[k4][NodeEnd].pathLenght; n++) {
+			population[i].chrom.push_back(allPath[k4][NodeEnd].path[n]);
 		}
 	}
 	//displayChroms("Initialize,BeforeDeleteCycle");
+	//
 	deleteCloseCycles();	//È¥³ı»·
-	displayChroms("Initialize,AfterDeleteCycles");
+	//displayChroms("Initialize,AfterDeleteCycles");
 }
 void generatenextpopulation() { //Éú³ÉÏÂÒ»´ú
 	selectoperator();
+	//one_fourth_selectoperator();
 	crossoveroperator();
 	mutationoperator();
 }
@@ -82,12 +89,6 @@ void evaluatepopulation() {  //ÆÀ¼Û¸öÌå£¬Çó×î¼Ñ¸öÌå
 	calculatefitnessvalue();
 	findbestandworstindividual();
 	for (int i = 0; i < POPSIZE; i++) {
-		/*
-		cout << "population[" << i << "] ";
-		for (unsigned int ii = 0; ii <population[i].chrom.size(); ii++) {
-		cout <<  population[i].chrom[ii] << " ";
-	}
-	*/
 		cout <<"Pop["<<i<<"]:"  << " Fit:" << population[i].fitness << " Chrom:";
 			for (unsigned int ii = 0; ii <population[i].chrom.size(); ii++) {
 				cout << population[i].chrom[ii] << " ";
@@ -105,22 +106,24 @@ void calculatefitnessvalue() { //¼ÆËãº¯ÊıÖµ,
 				- NodeGreen[population[i].chrom[j]]
 				- LinkRed[population[i].chrom[j]][population[i].chrom[j + 1]]);
 		}
-		population[i].fitness = 10000-(population[i].fitness);
+		population[i].fitness = NodeNum_Network * 500 -(population[i].fitness);
 	}
 }
 void findbestandworstindividual() { //Çó×î¼Ñ¸öÌåºÍ×î²î¸öÌå
 	double sum = 0.0;
 	bestindividual = population[0];
 	worstindividual = population[0];
-	for (int i = 1; i<POPSIZE; i++) {
+	for (int i = 0; i<POPSIZE; i++) {
 		if (population[i].fitness>bestindividual.fitness) {
 			bestindividual = population[i];
 			best_index = i;
 		}
+		/*
 		else if (population[i].fitness<worstindividual.fitness) {
 			worstindividual = population[i];
 			worst_index = i;
 		}
+		*/
 		sum += population[i].fitness;
 	}
 	if (generation == 0) {
@@ -131,6 +134,7 @@ void findbestandworstindividual() { //Çó×î¼Ñ¸öÌåºÍ×î²î¸öÌå
 			currentbest = bestindividual;
 		}
 	}
+	cout << "!!!best index:" << best_index << endl;
 }
 void performevolution() {//ÑİÊ¾ÆÀ¼Û½á¹û
 	if (bestindividual.fitness>currentbest.fitness) {
@@ -142,7 +146,6 @@ void performevolution() {//ÑİÊ¾ÆÀ¼Û½á¹û
 	//¼ÓÈë¼ÆÊ±Æ÷
 	finish = clock();
 	time_length = (double)(finish - start) / CLOCKS_PER_SEC;
-	//  std::cout << "GA157:time_length=" << time_length << std::endl;
 }
 void selectoperator() {//±ÈÀıÑ¡ÔñËã·¨
 	int i, index;
@@ -153,15 +156,12 @@ void selectoperator() {//±ÈÀıÑ¡ÔñËã·¨
 	for (i = 0; i<POPSIZE; i++) {
 		sum += population[i].fitness;
 	}
-
 	for (i = 0; i<POPSIZE; i++) {
 		cfitness[i] = population[i].fitness / sum;
 	}
-
 	for (i = 1; i<POPSIZE; i++) {
 		cfitness[i] = cfitness[i - 1] + cfitness[i];
 	}
-
 	for (i = 0; i<POPSIZE; i++) {
 		p = rand() % 1000 / 1000.0;
 		index = 0;
@@ -174,6 +174,64 @@ void selectoperator() {//±ÈÀıÑ¡ÔñËã·¨
 		population[i] = newpopulation[i];
 	}
 }
+
+//----new selector,°´ÊÊÓ¦¶È½«Ã¿Ò»´úµÄÈ¾É«ÌåÅÅĞò£¬±£ÁôÇ°1/4µÄ2±¶¡¢ÖĞ¼ä1/2µÄ1±¶£¬ºó1/4Ö±½ÓÈ¥³ı£¬ÌáÉıËã·¨µÄÊÕÁ²ËÙ¶È¡££¨²Î¿¼ÎÄÏ×£º»ùÓÚ¸Ä½øËã·¨µÄÓ¦ÓÃÑĞ¾¿£©
+void one_fourth_selectoperator() {
+	struct individual newpopulation[POPSIZE];
+	//BubbleSort(population);//´ÓĞ¡µ½´óÅÅÁĞ
+	displayChroms("before select");
+	quickSort(population, 0, POPSIZE - 1);
+	for (int i = 0; i < POPSIZE / 4; i++) {
+		newpopulation[i] = population[i + 3 * POPSIZE / 4];
+	}
+	for (int i = POPSIZE / 4; i < 3 * POPSIZE / 4; i++) {
+		newpopulation[i] = population[i];
+	}
+	for (int i = 3 * POPSIZE / 4; i < POPSIZE; i++) {
+		newpopulation[i] = population[i];
+	}
+	for (int i = 0; i < POPSIZE; i++) {
+		population[i] = newpopulation[i];
+	}
+	displayChroms("after select");
+}
+void swap(individual population[], int i, int j) {
+	double tmp = population[i].fitness;
+	population[i].fitness = population[j].fitness;
+	population[j].fitness = tmp;
+}
+void BubbleSort(individual population[]) {
+	for (int i = 0; i < POPSIZE - 1; i++) {
+		for (int j = POPSIZE - 1; j > i; j--) {
+			if (population[j].fitness < population[j - 1].fitness) {
+				swap(population, j, j - 1);
+			}
+		}
+	}
+}
+void quickSort(individual population[], int l, int r)
+{
+	if (l< r)
+	{
+		int i = l, j = r, x = population[l].fitness;
+		while (i < j)
+		{
+			while (i < j && population[j].fitness >= x) // ´ÓÓÒÏò×óÕÒµÚÒ»¸öĞ¡ÓÚxµÄÊı  
+				j--;
+			if (i < j)
+				population[i++].fitness = population[j].fitness;
+			while (i < j && population[i].fitness< x) // ´Ó×óÏòÓÒÕÒµÚÒ»¸ö´óÓÚµÈÓÚxµÄÊı  
+				i++;
+			if (i < j)
+				population[j--].fitness = population[i].fitness;
+		}
+		population[i].fitness = x;
+		quickSort(population, l, i - 1); // µİ¹éµ÷ÓÃ  
+		quickSort(population, i + 1, r);
+	}
+}
+//-------new selector end--------------------------
+
 void crossoveroperator() {//½»²æËã·¨
 	int i, j;
 	int index[POPSIZE];
@@ -188,7 +246,7 @@ void crossoveroperator() {//½»²æËã·¨
 		index[i] = index[point + i];
 		index[point + i] = temp;
 	}
-
+	srand((unsigned)time(NULL));
 	for (i = 0; i<POPSIZE - 1; i += 2) {
 		p = rand() % 1000 / 1000.0;
 		if (p<pc) {
@@ -259,9 +317,10 @@ void crossoveroperator() {//½»²æËã·¨
 					population[index[i + 1]].chrom.push_back(chromTemp2[k]);
 				}
 			}
-			deleteCloseCycles();//Delete all closed cycles
+		//	
 		}
 	}
+	deleteCloseCycles();//Delete all closed cycles
 	//for debug
 //	displayChroms("after cross");
 }
@@ -275,7 +334,6 @@ void mutationoperator() {//±äÒì²Ù×÷
 				//	srand((unsigned)time(NULL));
 				int ks = rand() % (population[i].chrom.size() - 0 - 3) + 1;//(0,chrom.size()-3] ,´Ë´¦ÊÇÏÂ±ê£¬²¢·Ç½Úµã±àºÅ±¾Éí
 				int kt = ks + 2;
-				
 				//·ÀÖ¹±äÒìÊ±ËùÈ¡µÄËæ»ú»ùÒòÎ»ÓëÖĞ¼ä±äÁ¿ÏàÍ¬
 				do {
 					k1 = rand() % (NodeEnd - NodeStart - 1) + 1;
@@ -290,7 +348,6 @@ void mutationoperator() {//±äÒì²Ù×÷
 
 				//k3-kt
 				int Length_k3_kt = allPath[k3][population[i].chrom[kt]].pathLenght;
-
 				//--for debug 
 				/*
 				cout << "k-kt:";
@@ -351,10 +408,11 @@ void mutationoperator() {//±äÒì²Ù×÷
 						allPath[population[i].chrom[ks]][k1].path[Length_ks_k1 - m - 1]);// ½«ĞÂµÄks-kµÄÂ·¾¶Ğ´ÔÚktÇ°Ãæ
 				}
 				//displayChroms("after mutation");//for debug
-				deleteCloseCycles();//Delete all closed cycles
+			//	deleteCloseCycles();//Delete all closed cycles
 			//displayChroms("AfterMutationAndDeleteCycles:");
 			}
 		}
+		deleteCloseCycles();//Delete all closed cycles
 	}
 void outputtextreport() {//Êı¾İÊä³ö
 	double sum;
@@ -364,11 +422,13 @@ void outputtextreport() {//Êı¾İÊä³ö
 		sum += population[i].fitness;
 	}
 	average = sum / POPSIZE;
-	printf("µ±Ç°ÊÀ´ú=%d\nµ±Ç°ÊÀ´úÆ½¾ùº¯ÊıÖµ=%f\nµ±Ç°ÊÀ´ú×î¸ßº¯ÊıÖµ=%f\n", generation, average, population[best_index].fitness);
+	
+	printf("µ±Ç°ÊÀ´ú=%d\nµ±Ç°ÊÀ´úÆ½¾ùº¯ÊıÖµ=%f\nµ±Ç°ÊÀ´ú×î¸ßº¯ÊıÖµ=%f\n×î¼Ñ¸öÌå=%d\n", generation, average, population[best_index].fitness,best_index);
 	cout << "chrom:";
 	for (unsigned int i = 0; i < population[best_index].chrom.size(); i++) {
-		cout << population[best_index].chrom[i] << "->";
+		cout << population[best_index].chrom[i] << "-->";
 	}
+	cout << endl;
 	cout << endl;
 }
 void deleteCloseCycles() {//È¥³ı»·£¬ĞÎ²ÎÎªµÚiÌõÈ¾É«Ìå
@@ -397,13 +457,10 @@ void displayChroms(std::string debugName) {
 	}
 	cout << endl;
 }
-double getRealCost(int**LinkUnitPriceReal, individual currentbest) {
-	double costTmp=0;
-	for (unsigned int i = 0; i < currentbest.chrom.size()-1; i++) {
-	//	for (unsigned int j = i + 1; j < currentbest.chrom.size(); j++) {
-		//int j = i + 1;
-			costTmp += LinkUnitPriceReal[currentbest.chrom[i]][currentbest.chrom[i+1]];
-	//	}
+int getRealCost() {
+	int costTmp=0;
+	for (unsigned int i = 0; i < population[best_index].chrom.size()-1; i++) {
+			costTmp += LinkUnitPriceReal[population[best_index].chrom[i]][population[best_index].chrom[i+1]];
 	}
 	return costTmp;
 }
