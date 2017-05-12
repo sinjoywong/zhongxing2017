@@ -21,7 +21,7 @@ extern int NodeNumLimit, NodeGreenLimit, LinkGreenLimit, NodeRedLimit;
 double time_length;
 clock_t start, finish;
 
-double  Weight_GreenLink,Weight_GreenNode,Weight_RedLink;
+double  Weight_GreenLink, Weight_GreenNode, Weight_RedLink;
 int NodeStart, NodeEnd;
 int realCost;
 //----main-----
@@ -45,8 +45,6 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num, char * filename) {
 			}
 			//加入计时器
 			clock_t finish2 = clock();
-			double time_length2 = (double)(finish2 - start) / CLOCKS_PER_SEC;
-			//	std::cout << "generation:" << generation << " time_length2=" << time_length2 << " Cost:" << sucessFinish.successAllCost<< std::endl;
 			generatenextpopulation();
 			evaluatepopulation();
 			performevolution();
@@ -60,8 +58,8 @@ jumpout:
 	realCost = getRealCost();
 	cout << "real Cost:" << realCost << endl;
 
-	for (unsigned int i = 0; i < population[best_index].chrom.size(); i++) {
-		cout << population[best_index].chrom[i] << "->";
+	for (unsigned int i = 0; i < currentbest.chrom.size(); i++) {
+		cout << currentbest.chrom[i] << "->";
 	}
 	cout << endl;
 
@@ -70,23 +68,31 @@ jumpout:
 	char charTemp[20];
 	//sprintf(charTemp, "%d", sucessFinish.successPathNum);
 	outString += "Cost:";
-	_itoa(realCost, charTemp, 10);
+	//_itoa(realCost, charTemp, 10);
+	sprintf(charTemp, "%d", realCost);
 	outString += charTemp;
 	outString += '\n';
 
 	outString += "PathLength:";
-	_itoa(population[best_index].chrom.size(), charTemp, 10);
+	//_itoa(population[best_index].chrom.size(), charTemp, 10);
+	sprintf(charTemp, "%d", currentbest.chrom.size());
 	outString = outString + charTemp + "\n";
 
 	outString += "Path:";
-	for (unsigned int i = 0; i < population[best_index].chrom.size(); i++) {
-		_itoa(population[best_index].chrom[i], charTemp, 10);
+	//for (unsigned int i = 0; i < population[best_index].chrom.size(); i++) {
+	//	//_itoa(population[best_index].chrom[i], charTemp, 10);
+	//	sprintf(charTemp,"%d",population[best_index].chrom[i]);
+	//	outString = outString + charTemp + ' ';
+	//}
+	for (unsigned int i = 0; i < currentbest.chrom.size(); i++) {
+		//_itoa(population[best_index].chrom[i], charTemp, 10);
+		sprintf(charTemp, "%d", currentbest.chrom[i]);
 		outString = outString + charTemp + ' ';
 	}
 	const char *topo_file;
 	topo_file = outString.c_str();
 	write_result(topo_file, filename);
-	system("pause");
+	//system("pause");
 }
 //----------------main end------------------------
 void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
@@ -97,7 +103,7 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 	vector<int> vec_redlink;
 	string temp;
 	char *test = topo[0];
-	
+
 	//获得第一行信息
 	for (int i = 0; test[i] != '\n'; i++) {
 		if ((test[i + 1] == ' ') || (test[i + 1] == '\n')) {
@@ -113,12 +119,12 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 	NodeGreenLimit = data[1];
 	LinkGreenLimit = data[2];
 	NodeRedLimit = data[3];
-	Weight_GreenNode = 2000 * NodeGreenLimit;
-	Weight_GreenLink = 4000 * LinkGreenLimit;
-	Weight_RedLink = -999 * NodeRedLimit;
+	Weight_GreenNode = 2500 * NodeGreenLimit;
+	Weight_GreenLink = 5000 * LinkGreenLimit;
+	Weight_RedLink = -10000 * NodeRedLimit;
 
 	data.clear();
-    test = topo[2];
+	test = topo[2];
 	for (int i = 0; test[i] != '\n'; i++) {
 		if ((test[i + 1] == ' ') || (test[i + 1] == '\n')) {
 			temp += test[i];
@@ -136,11 +142,11 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 	LinkNum_Blue = data[3];
 	LinkNum_Red = data[4];
 
-//Allocate
+	//Allocate
 	LinkUnitPrice = new double *[NodeNum_Network];
 	LinkUnitPriceReal = new int  *[NodeNum_Network];
-	NodeGreen = new double [NodeNum_Network];
-	
+	NodeGreen = new double[NodeNum_Network];
+
 	LinkGreen = new double *[NodeNum_Network];
 	LinkRed = new double *[NodeNum_Network];
 	for (int i = 0; i < NodeNum_Network; i++) {
@@ -153,15 +159,15 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 		memset(LinkGreen[i], 0, NodeNum_Network * sizeof(double));
 		memset(LinkRed[i], 0, NodeNum_Network * sizeof(double));
 	}
-		memset(NodeGreen, 0, NodeNum_Network * sizeof(double));//将绿色节点的编号初始化为零，在后边的相应出现的绿色节点的位置赋给权重
-	//初始化这两个矩阵 使得不直接连通的线路单价为100000
+	memset(NodeGreen, 0, NodeNum_Network * sizeof(double));//将绿色节点的编号初始化为零，在后边的相应出现的绿色节点的位置赋给权重
+														   //初始化这两个矩阵 使得不直接连通的线路单价为100000
 	for (int i = 0; i < NodeNum_Network; i++) {
 		for (int j = 0; j < NodeNum_Network; j++) {
 			LinkUnitPrice[i][j] = 100000;
 			LinkUnitPriceReal[i][j] = 100000;
 		}
 	}
-// 起点及终点的节点编号
+	// 起点及终点的节点编号
 	NodeStart = 0;
 	NodeEnd = NodeNum_Network - 1;
 	//Get link information
@@ -183,8 +189,8 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 			}
 		}
 	}
-	
-	for (int i = 0; i != vec_link.size() / 3; i++) {
+
+	for (unsigned int i = 0; i != vec_link.size() / 3; i++) {
 		LinkUnitPrice[vec_link[3 * i]][vec_link[3 * i + 1]] = vec_link[3 * i + 2];
 		LinkUnitPriceReal[vec_link[3 * i]][vec_link[3 * i + 1]] = vec_link[3 * i + 2];
 	}
@@ -228,24 +234,24 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 			}
 		}
 	}
-	for (int i = 0; i != vec_greenlink.size() / 2; i++) {
+	for (unsigned int i = 0; i != vec_greenlink.size() / 2; i++) {
 		LinkGreen[vec_greenlink[2 * i]][vec_greenlink[2 * i + 1]] = Weight_GreenLink;
 		LinkGreen[vec_greenlink[2 * i + 1]][vec_greenlink[2 * i]] = Weight_GreenLink;
 	}
 	/*
-	//----for debug 
+	//----for debug
 	cout << "greenLink debug:" << endl;
 	for (int i=0;i<NodeNum_Network;i++){
-		for (int j = 0; j < NodeNum_Network; j++) {
-			cout <<"["<< i << " " << j << "] " << LinkGreen[i][j] << " ";
-		}
-		cout << endl;
+	for (int j = 0; j < NodeNum_Network; j++) {
+	cout <<"["<< i << " " << j << "] " << LinkGreen[i][j] << " ";
+	}
+	cout << endl;
 	}
 	cout << endl;
 	//-----debug end
 	*/
 	//第5,redLink
-	for (int j = LinkNum +8  + NodeNum_Blue + LinkNum_Blue; j< line_num; j++) {
+	for (int j = LinkNum + 8 + NodeNum_Blue + LinkNum_Blue; j< line_num; j++) {
 		char *test = topo[j];
 		for (int i = 0; test[i] != '\0'; i++) {
 			if ((test[i + 1] == ' ') || (test[i + 1] == '\0')) {
@@ -258,11 +264,10 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 			}
 		}
 	}
-	for (int i = 0; i != vec_redlink.size() / 2; i++) {
+	for (unsigned int i = 0; i != vec_redlink.size() / 2; i++) {
 		LinkRed[vec_redlink[2 * i]][vec_redlink[2 * i + 1]] = Weight_RedLink;
 		LinkRed[vec_redlink[2 * i + 1]][vec_redlink[2 * i]] = Weight_RedLink;
 	}
-
 	//----for debug
 	/*
 	cout << "greenLink debug:" << endl;
