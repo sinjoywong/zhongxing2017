@@ -29,11 +29,13 @@ int NodeNumLimit, NodeGreenLimit, LinkGreenLimit, NodeRedLimit;
 void input() {//数据输入
 	printf("初始化全局变量:\n");
 	//最大世代数
-	maxgeneration = 50;
+	maxgeneration = 100;
 	//交叉率
-	pc = 0.2;
+	//pc = 0.4;
+	pc = 0.4;
 	//变异率
-	pm = 0.05;
+	//pm = 0.1;
+	pm = 0.1;
 
 	//为了计算方便，使得条路径花费乘以100
 	for (int i = 0; i < NodeNum_Network; i++) {
@@ -91,13 +93,15 @@ void generatenextpopulation() { //生成下一代
 void evaluatepopulation() {  //评价个体，求最佳个体
 	calculatefitnessvalue();
 	findbestandworstindividual();
+	/*
 	for (int i = 0; i < POPSIZE; i++) {
-		cout << "Pop[" << i << "]:" << " Fit:" << population[i].fitness << " Chrom:";
-		for (unsigned int ii = 0; ii <population[i].chrom.size(); ii++) {
-			cout << population[i].chrom[ii] << " ";
-		}
-		cout << endl;
+	cout <<"Pop["<<i<<"]:"  << " Fit:" << population[i].fitness << " Chrom:";
+	for (unsigned int ii = 0; ii <population[i].chrom.size(); ii++) {
+	cout << population[i].chrom[ii] << " ";
 	}
+	cout << endl;
+	}
+	*/
 	//displayChroms("evaluatePopulation");
 }
 void calculatefitnessvalue() { //计算函数值,
@@ -146,7 +150,7 @@ void findbestandworstindividual() { //求最佳个体和最差个体
 			currentbest = bestindividual;
 		}
 	}
-	cout << "!!!best index:" << best_index << endl;
+	//cout << "!!!best index:" << best_index << endl;
 }
 void performevolution() {//演示评价结果
 	if (bestindividual.fitness>currentbest.fitness) {
@@ -156,14 +160,14 @@ void performevolution() {//演示评价结果
 		population[worst_index] = currentbest;
 	}
 	//加入计时器
-	finish = clock();
-	time_length = (double)(finish - start) / CLOCKS_PER_SEC;
+	//	finish = clock();
+	//	time_length = (double)(finish - start) / CLOCKS_PER_SEC;
 }
 void selectoperator() {//比例选择算法
 	int i, index;
 	double p, sum = 0.0;
 	double cfitness[POPSIZE];
-	srand((unsigned)time(NULL));
+	//	srand((unsigned)time(NULL));
 	struct individual newpopulation[POPSIZE];
 	for (i = 0; i<POPSIZE; i++) {
 		sum += population[i].fitness;
@@ -191,7 +195,7 @@ void selectoperator() {//比例选择算法
 void one_fourth_selectoperator() {
 	struct individual newpopulation[POPSIZE];
 	//BubbleSort(population);//从小到大排列
-	displayChroms("before select");
+	//	displayChroms("before select");
 	quickSort(population, 0, POPSIZE - 1);
 	for (int i = 0; i < POPSIZE / 4; i++) {
 		newpopulation[i] = population[i + 3 * POPSIZE / 4];
@@ -205,7 +209,7 @@ void one_fourth_selectoperator() {
 	for (int i = 0; i < POPSIZE; i++) {
 		population[i] = newpopulation[i];
 	}
-	displayChroms("after select");
+	//	displayChroms("after select");
 }
 void swap(individual population[], int i, int j) {
 	double tmp = population[i].fitness;
@@ -276,7 +280,8 @@ void crossoveroperator() {//交叉算法
 				int firstNode = 0;                    //选择交叉的第一个点
 				int secondNode = 0;                   //选择交叉的第二个点
 				int crossoverPosition[4];             //记录重复节点出现在染色体中的位置
-			//	int PositionTemp;                     //临时储存重复节点出现在染色体中的位置
+				for (int i = 0; i<4; i++) { crossoverPosition[i] = 0; }
+				//int PositionTemp;                     //临时储存重复节点出现在染色体中的位置
 				vector<int> chromTemp1;                //临时储存染色体
 				vector<int> chromTemp2;                //临时储存染色体
 				firstNode = repeatNode[rand() % repeatNode.size()];
@@ -352,11 +357,11 @@ void mutationoperator() {//变异操作
 			int ks = rand() % (population[i].chrom.size() - 0 - 3) + 1;//(0,chrom.size()-3] ,此处是下标，并非节点编号本身
 			int kt = ks + 2;
 			//防止变异时所取的随机基因位与中间变量相同
-			do {
-				k1 = rand() % (NodeEnd - NodeStart - 1) + 1;
-				k2 = rand() % (NodeEnd - NodeStart - 1) + 1;
-				k3 = rand() % (NodeEnd - NodeStart - 1) + 1;
-			} while (ks == k1 || ks == k2 || kt == k1 || kt == k2 || k1 == k2 || ks == k3 || kt == k3 || k3 == k1 || k3 == k2);
+			//	do {
+			k1 = rand() % (NodeEnd - NodeStart - 1) + 1;
+			k2 = rand() % (NodeEnd - NodeStart - 1) + 1;
+			k3 = rand() % (NodeEnd - NodeStart - 1) + 1;
+			//	} while ( ks == k1 || ks == k2 || kt ==k1 || kt ==k2 || k1==k2 || ks == k3 || kt == k3 || k3 == k1 || k3 == k2);
 			population[i].chrom.erase(population[i].chrom.begin() + ks + 1, population[i].chrom.begin() + kt);//删除ks与kt之间的元素,保留ks，kt
 
 																											  //displayChroms("--after erase");// --for debug
@@ -441,12 +446,15 @@ void outputtextreport() {//数据输出
 	average = sum / POPSIZE;
 
 	printf("当前世代=%d\n当前世代平均函数值=%f\n当前世代最高函数值=%f\n最佳个体=%d\n", generation, average, currentbest.fitness, best_index);
-	cout << "chrom:";
+	//---for debug---
+	/*	cout << "chrom:";
 	for (unsigned int i = 0; i < currentbest.chrom.size(); i++) {
-		cout << currentbest.chrom[i] << "-->";
+	cout <<currentbest.chrom[i] << "-->";
 	}
 	cout << endl;
 	cout << endl;
+	*/
+	//---for debug end---
 }
 void deleteCloseCycles() {//去除环，形参为第i条染色体
 	for (int i = 0; i < POPSIZE; i++) {

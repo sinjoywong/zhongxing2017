@@ -29,7 +29,6 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num, char * filename) {
 	//加入计时器，结尾部分在performevolution()中
 	start = clock();
 	finish = start;
-	//weightsetting();
 	get_split_number(topo, line_num);
 	input();
 	Floyd(LinkUnitPrice, NodeNum_Network, LinkNum);
@@ -37,36 +36,35 @@ void deploy_server(char * topo[MAX_EDGE_NUM], int line_num, char * filename) {
 	generateinitialpopulation();
 	evaluatepopulation();
 	//对时间和进化数目的双重控制，若不满足两个条件的任意一种则跳出进化
-	while (time_length < 85) {
-		while (generation < maxgeneration) {
-			generation++;
-			if (generation >= maxgeneration || time_length > 85) {
-				goto  jumpout;
-			}
-			//加入计时器
-			clock_t finish2 = clock();
-			generatenextpopulation();
-			evaluatepopulation();
-			performevolution();
-			outputtextreport();  //for debug
-		}
+	//	while (time_length < 85) {
+	while (generation < maxgeneration) {
+		generation++;
+		//if (generation >= maxgeneration || time_length > 85) {
+		//	goto  jumpout;
+		//}
+		//加入计时器
+		//			clock_t finish2 = clock();
+
+		generatenextpopulation();
+		evaluatepopulation();
+		//	performevolution();
+		outputtextreport();  //for debug
 	}
-jumpout:
+	//	}
+	//jumpout:
 	printf("最大函数值等于：%f ", currentbest.fitness);
 	//计算真实花费
-	//realCost = getRealCost(LinkUnitPriceReal, currentbest);
 	realCost = getRealCost();
-	cout << "real Cost:" << realCost << endl;
+	//cout << "real Cost:" << realCost << endl;
 
 	for (unsigned int i = 0; i < currentbest.chrom.size(); i++) {
 		cout << currentbest.chrom[i] << "->";
 	}
-	cout << endl;
+	cout << "Real Cost:" << realCost << endl;
 
 	//---output---
 	string outString;
 	char charTemp[20];
-	//sprintf(charTemp, "%d", sucessFinish.successPathNum);
 	outString += "Cost:";
 	//_itoa(realCost, charTemp, 10);
 	sprintf(charTemp, "%d", realCost);
@@ -75,15 +73,10 @@ jumpout:
 
 	outString += "PathLength:";
 	//_itoa(population[best_index].chrom.size(), charTemp, 10);
-	sprintf(charTemp, "%d", currentbest.chrom.size());
+	sprintf(charTemp, "%d", (int)currentbest.chrom.size());
 	outString = outString + charTemp + "\n";
 
 	outString += "Path:";
-	//for (unsigned int i = 0; i < population[best_index].chrom.size(); i++) {
-	//	//_itoa(population[best_index].chrom[i], charTemp, 10);
-	//	sprintf(charTemp,"%d",population[best_index].chrom[i]);
-	//	outString = outString + charTemp + ' ';
-	//}
 	for (unsigned int i = 0; i < currentbest.chrom.size(); i++) {
 		//_itoa(population[best_index].chrom[i], charTemp, 10);
 		sprintf(charTemp, "%d", currentbest.chrom[i]);
@@ -119,8 +112,8 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 	NodeGreenLimit = data[1];
 	LinkGreenLimit = data[2];
 	NodeRedLimit = data[3];
-	Weight_GreenNode = 2500 * NodeGreenLimit;
-	Weight_GreenLink = 5000 * LinkGreenLimit;
+	Weight_GreenNode = 2000 * NodeGreenLimit;
+	Weight_GreenLink = 4000 * LinkGreenLimit;
 	Weight_RedLink = -10000 * NodeRedLimit;
 
 	data.clear();
@@ -238,18 +231,7 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 		LinkGreen[vec_greenlink[2 * i]][vec_greenlink[2 * i + 1]] = Weight_GreenLink;
 		LinkGreen[vec_greenlink[2 * i + 1]][vec_greenlink[2 * i]] = Weight_GreenLink;
 	}
-	/*
-	//----for debug
-	cout << "greenLink debug:" << endl;
-	for (int i=0;i<NodeNum_Network;i++){
-	for (int j = 0; j < NodeNum_Network; j++) {
-	cout <<"["<< i << " " << j << "] " << LinkGreen[i][j] << " ";
-	}
-	cout << endl;
-	}
-	cout << endl;
-	//-----debug end
-	*/
+
 	//第5,redLink
 	for (int j = LinkNum + 8 + NodeNum_Blue + LinkNum_Blue; j< line_num; j++) {
 		char *test = topo[j];
@@ -268,18 +250,6 @@ void get_split_number(char * topo[MAX_EDGE_NUM], int line_num) {
 		LinkRed[vec_redlink[2 * i]][vec_redlink[2 * i + 1]] = Weight_RedLink;
 		LinkRed[vec_redlink[2 * i + 1]][vec_redlink[2 * i]] = Weight_RedLink;
 	}
-	//----for debug
-	/*
-	cout << "greenLink debug:" << endl;
-	for (int i=0;i<NodeNum_Network;i++){
-	for (int j = 0; j < NodeNum_Network; j++) {
-	cout <<"["<< i << " " << j << "] " << LinkRed[i][j] << " ";
-	}
-	cout << endl;
-	}
-	cout << endl;
-	*/
-	//-----debug end
 }
 void Deallocate_Arrays() {
 	for (int i = 0; i < NodeNum_Network; i++) {
