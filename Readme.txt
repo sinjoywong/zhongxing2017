@@ -1,3 +1,4 @@
+2017中兴捧月神算师 算法精英挑战赛 迪杰斯特拉派(http://challenge.zte.net/activity.php?mod=info)
 [参赛队名：看门狗2]
 [参赛队员：王新忠，康家磊]
 [派别：迪杰斯特拉派]
